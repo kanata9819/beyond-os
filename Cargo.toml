@@ -2,6 +2,9 @@
 members = ["./crates/kernel", "./crates/os-runner", "crates/graphics"]
 resolver = "3"
 
+[workspace.dependencies]
+bootloader_api = "0.11.13"
+
 [profile.dev]
 panic = "abort"
 

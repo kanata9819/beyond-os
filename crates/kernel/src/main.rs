@@ -12,29 +12,24 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info: bootloader_api::info::FrameBufferInfo = fb.info();
     let buffer: &mut [u8] = fb.buffer_mut();
 
-    let width: usize = info.width;
-    let height: usize = info.height;
-    let stride: usize = info.stride;
-    let bpp: usize = info.bytes_per_pixel as usize;
-
     let mut fb: BeyondFramebuffer<'_> = BeyondFramebuffer {
         buf: buffer,
-        width: width,
-        height: height,
-        stride: stride,
-        bpp,
+        width: info.width,
+        height: info.height,
+        stride: info.stride,
+        bpp: info.bytes_per_pixel as usize,
     };
 
-    for y in 0..height {
-        for x in 0..width {
+    for y in 0..fb.height {
+        for x in 0..fb.width {
             fb.put_pixel(x, y, Color::deep_blue());
         }
     }
 
-    let rect_w: usize = width / 3;
-    let rect_h: usize = height / 6;
-    let start_x: usize = (width - rect_w) / 2;
-    let start_y: usize = (height - rect_h) / 2;
+    let rect_w: usize = fb.width / 3;
+    let rect_h: usize = fb.height / 6;
+    let start_x: usize = (fb.width - rect_w) / 2;
+    let start_y: usize = (fb.height - rect_h) / 2;
 
     for y in start_y..(start_y + rect_h) {
         for x in start_x..(start_x + rect_w) {

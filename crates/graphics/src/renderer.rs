@@ -34,6 +34,6 @@ pub fn draw_text(fb: &mut BeyondFramebuffer, x: usize, y: usize, text: &str, col
         if let Some(g) = glyph_for(ch) {
             draw_char(fb, cx, y, g, color);
         }
-        cx += 8 + 2; // 文字幅 + すきま
+        cx += 8 + 2;
     }
 }
