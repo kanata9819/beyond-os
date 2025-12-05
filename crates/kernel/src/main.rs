@@ -4,6 +4,7 @@
 use bootloader_api::{BootInfo, entry_point};
 use color::Color;
 mod color;
+mod font;
 
 entry_point!(kernel_main);
 
@@ -30,118 +31,17 @@ impl<'a> SimpleFramebuffer<'a> {
     }
 }
 
-/* ====== 8x8 の超簡易フォント（必要な文字だけ） ====== */
-
-const GLYPH_H: [u8; 8] = [
-    0b1000_0001,
-    0b1000_0001,
-    0b1111_1111,
-    0b1000_0001,
-    0b1000_0001,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_E: [u8; 8] = [
-    0b1111_1111,
-    0b1000_0000,
-    0b1111_1110,
-    0b1000_0000,
-    0b1111_1111,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_L: [u8; 8] = [
-    0b1000_0000,
-    0b1000_0000,
-    0b1000_0000,
-    0b1000_0000,
-    0b1111_1111,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_O: [u8; 8] = [
-    0b0111_1110,
-    0b1000_0001,
-    0b1000_0001,
-    0b1000_0001,
-    0b0111_1110,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_B: [u8; 8] = [
-    0b1111_1110,
-    0b1000_0001,
-    0b1111_1110,
-    0b1000_0001,
-    0b1111_1110,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_Y: [u8; 8] = [
-    0b1000_0001,
-    0b0100_0010,
-    0b0011_1100,
-    0b0001_1000,
-    0b0001_1000,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_N: [u8; 8] = [
-    0b1000_0001,
-    0b1100_0001,
-    0b1010_0001,
-    0b1001_0001,
-    0b1000_1001,
-    0b1000_0111,
-    0,
-    0,
-];
-
-const GLYPH_D: [u8; 8] = [
-    0b1111_1100,
-    0b1000_0010,
-    0b1000_0001,
-    0b1000_0010,
-    0b1111_1100,
-    0,
-    0,
-    0,
-];
-
-const GLYPH_EXCL: [u8; 8] = [
-    0b0011_1100,
-    0b0011_1100,
-    0b0011_1100,
-    0b0011_1100,
-    0b0011_1100,
-    0,
-    0b0011_1100,
-    0,
-];
-
 fn glyph_for(c: char) -> Option<&'static [u8; 8]> {
     match c {
-        'H' => Some(&GLYPH_H),
-        'E' => Some(&GLYPH_E),
-        'L' => Some(&GLYPH_L),
-        'O' => Some(&GLYPH_O),
-        'B' => Some(&GLYPH_B),
-        'Y' => Some(&GLYPH_Y),
-        'N' => Some(&GLYPH_N),
-        'D' => Some(&GLYPH_D),
-        '!' => Some(&GLYPH_EXCL),
+        'H' => Some(&font::GLYPH_H),
+        'E' => Some(&font::GLYPH_E),
+        'L' => Some(&font::GLYPH_L),
+        'O' => Some(&font::GLYPH_O),
+        'B' => Some(&font::GLYPH_B),
+        'Y' => Some(&font::GLYPH_Y),
+        'N' => Some(&font::GLYPH_N),
+        'D' => Some(&font::GLYPH_D),
+        '!' => Some(&font::GLYPH_EXCL),
         ' ' => None,
         _ => None,
     }
@@ -204,14 +104,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let start_x = (width - rect_w) / 2;
     let start_y = (height - rect_h) / 2;
 
-    let rect_color: Color = Color {
-        r: 0xFF,
-        g: 0xFF,
-        b: 0x00,
-    };
     for y in start_y..(start_y + rect_h) {
         for x in start_x..(start_x + rect_w) {
-            fb.put_pixel(x, y, rect_color);
+            fb.put_pixel(x, y, Color::white());
         }
     }
 
@@ -222,7 +117,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let text_x: usize = start_x + (rect_w - text_width) / 2;
     let text_y: usize = start_y + rect_h / 2 - 4; // だいたい中央
 
-    draw_text(&mut fb, text_x, text_y, text, color::BLACK);
+    draw_text(&mut fb, text_x, text_y, text, color::Color::black());
 
     // そのまま停止
     loop {
