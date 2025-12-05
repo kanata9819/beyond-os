@@ -21,4 +21,12 @@ impl Color {
             b: 0x00,
         }
     }
+    // 背景：濃い青
+    pub fn deep_blue() -> Color {
+        Color {
+            r: 0x10,
+            g: 0x40,
+            b: 0x60,
+        }
+    }
 }

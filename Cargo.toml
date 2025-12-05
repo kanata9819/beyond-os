@@ -1,5 +1,5 @@
 [workspace]
-members = ["./crates/kernel", "./crates/os-runner"]
+members = ["./crates/kernel", "./crates/os-runner", "crates/graphics"]
 resolver = "3"
 
 [profile.dev]
