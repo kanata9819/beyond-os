@@ -6,7 +6,6 @@ use graphics::{color::Color, frame_buffer::BeyondFramebuffer, renderer};
 
 entry_point!(kernel_main);
 
-/* ============== ここからエントリポイント ============== */
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let fb: &mut bootloader_api::info::FrameBuffer =
         boot_info.framebuffer.as_mut().expect("no framebuffer");
@@ -32,7 +31,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         }
     }
 
-    // 中央の黄色い箱
     let rect_w: usize = width / 3;
     let rect_h: usize = height / 6;
     let start_x: usize = (width - rect_w) / 2;
@@ -44,16 +42,14 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         }
     }
 
-    // 文字列 "HELLO BEYOND!"
     let text: &str = "HELLO BEYOND!";
-    let char_w: usize = 8 + 2; // 文字 + 余白
+    let char_w: usize = 8 + 2;
     let text_width: usize = (text.len()) * char_w;
     let text_x: usize = start_x + (rect_w - text_width) / 2;
-    let text_y: usize = start_y + rect_h / 2 - 4; // だいたい中央
+    let text_y: usize = start_y + rect_h / 2 - 4;
 
     renderer::draw_text(&mut fb, text_x, text_y, text, Color::black());
 
-    // そのまま停止
     loop {
         unsafe {
             core::arch::asm!("hlt");

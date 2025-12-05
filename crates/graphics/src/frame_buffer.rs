@@ -1,4 +1,5 @@
 use crate::color::Color;
+
 pub struct BeyondFramebuffer<'a> {
     pub buf: &'a mut [u8],
     pub width: usize,
@@ -20,5 +21,17 @@ impl<'a> BeyondFramebuffer<'a> {
         if self.bpp == 4 {
             self.buf[idx + 3] = 0x00;
         }
+    }
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    pub fn height(&self) -> usize {
+        self.height
+    }
+    pub fn stride(&self) -> usize {
+        self.stride
+    }
+    pub fn bpp(&self) -> usize {
+        self.bpp
     }
 }
