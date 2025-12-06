@@ -1,0 +1,34 @@
+{
+    // Debug configs for beyond-os.
+    // Install the CodeLLDB extension for the lldb config, and have gdb (e.g. gdb-multiarch) available for the QEMU attach.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run os-runner (host)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "run",
+                    "-p",
+                    "os-runner"
+                ],
+                "filter": {
+                    "name": "os-runner",
+                    "kind": "bin"
+                }
+            },
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Kernel (attach via QEMU gdb stub)",
+            "type": "cppdbg",
+            "request": "launch",
+            // Make sure QEMU is running with: qemu-system-x86_64 -S -s -drive file=target/bios.img,format=raw -no-reboot -no-shutdown
+            // Port 1234 is used by default for -s.
+            "program": "${workspaceFolder}/target/x86_64-unknown-none/debug/kernel",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Create BIOS image"
+        }
+    ]
+}

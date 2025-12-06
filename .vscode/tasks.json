@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build kernel (x86_64-unknown-none)",
+            "type": "process",
+            "command": "cargo",
+            "args": [
+                "build",
+                "-p",
+                "kernel",
+                "--target",
+                "x86_64-unknown-none"
+            ],
+            "problemMatcher": "$rustc",
+            "group": "build"
+        },
+        {
+            "label": "Create BIOS image",
+            "type": "process",
+            "command": "cargo",
+            "args": [
+                "run",
+                "-p",
+                "os-runner"
+            ],
+            "problemMatcher": "$rustc",
+            "dependsOn": "Build kernel (x86_64-unknown-none)"
+        }
+    ]
+}
