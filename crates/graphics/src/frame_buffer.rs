@@ -22,6 +22,7 @@ impl<'a> BeyondFramebuffer<'a> {
             self.buf[idx + 3] = 0x00;
         }
     }
+
     pub fn width(&self) -> usize {
         self.width
     }
