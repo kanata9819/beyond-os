@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::{color::Color, frame_buffer::BeyondFramebuffer, renderer::Renderer};
 
 pub struct Console<'a> {
@@ -14,8 +12,9 @@ pub struct Console<'a> {
 
 impl<'a> Console<'a> {
     pub fn new(fb: &'a mut BeyondFramebuffer<'a>, fg: Color, bg: Color) -> Self {
-        let cols: usize = fb.width() as usize / 8;
-        let rows: usize = fb.height() as usize / 8;
+        const PIXEL: usize = 8;
+        let cols: usize = fb.width() / PIXEL;
+        let rows: usize = fb.height() / PIXEL;
 
         let mut console: Console<'a> = Self {
             fb,
@@ -29,36 +28,6 @@ impl<'a> Console<'a> {
 
         console.clear();
         console
-    }
-
-    fn write_char(&mut self, ch: char) {
-        match ch {
-            '\n' => {
-                self.newline();
-            }
-            _ => {
-                if let Some(glyph) = Renderer::glyph_for(ch) {
-                    let x: usize = self.cursor_col * (8 + 2); // 8px + 2px余白
-                    let y: usize = self.cursor_row * 8;
-                    Renderer::draw_char(self.fb, x, y, glyph, self.fg);
-                }
-
-                self.cursor_col += 1;
-                if self.cursor_col >= self.cols {
-                    self.newline();
-                }
-            }
-        }
-    }
-
-    fn newline(&mut self) {
-        self.cursor_col = 0;
-        if self.cursor_row + 1 >= self.rows {
-            // v1：本物のスクロールは後回し。いったん全クリアでOK
-            self.clear();
-        } else {
-            self.cursor_row += 1;
-        }
     }
 
     pub fn write_str(&mut self, s: &str) {
@@ -80,7 +49,60 @@ impl<'a> Console<'a> {
                 self.fb.put_pixel(x, y, self.bg);
             }
         }
+
         self.cursor_col = 0;
         self.cursor_row = 0;
+    }
+
+    fn write_char(&mut self, ch: char) {
+        const MARGIN_X: usize = 2;
+        const MARGIN_Y: usize = 8;
+        match ch {
+            '\n' => {
+                self.newline();
+            }
+            _ => {
+                if let Some(glyph) = Renderer::glyph_for(ch) {
+                    let x: usize = self.cursor_col * (8 + MARGIN_X);
+                    let y: usize = self.cursor_row * 8 + MARGIN_Y;
+                    Renderer::draw_char(self.fb, x, y, glyph, self.fg);
+                }
+
+                self.cursor_col += 1;
+                if self.cursor_col >= self.cols {
+                    self.newline();
+                }
+            }
+        }
+    }
+
+    pub fn newline(&mut self) {
+        self.cursor_col = 0;
+        self.cursor_row += 1;
+
+        // もし画面の行数を超えたらスクロール
+        if self.cursor_row >= self.rows {
+            self.scroll_up();
+            self.cursor_row = self.rows - 1;
+        }
+    }
+
+    fn scroll_up(&mut self) {
+        let row_h: usize = 8; // フォント高さ
+
+        // 上の行に次の行をコピー
+        for y in 0..(self.fb.height - row_h) {
+            for x in 0..self.fb.width {
+                let color: Color = self.fb.get_pixel(x, y + row_h);
+                self.fb.put_pixel(x, y, color);
+            }
+        }
+
+        // 最後の行を消す
+        for y in (self.fb.height - row_h)..self.fb.height {
+            for x in 0..self.fb.width {
+                self.fb.put_pixel(x, y, self.bg);
+            }
+        }
     }
 }

@@ -5,49 +5,6 @@ use crate::frame_buffer::BeyondFramebuffer;
 pub struct Renderer;
 
 impl Renderer {
-    pub fn glyph_for(c: char) -> Option<&'static [u8; 8]> {
-        match c {
-            'H' => Some(&font::GLYPH_H),
-            'E' => Some(&font::GLYPH_E),
-            'L' => Some(&font::GLYPH_L),
-            'O' => Some(&font::GLYPH_O),
-            'B' => Some(&font::GLYPH_B),
-            'Y' => Some(&font::GLYPH_Y),
-            'N' => Some(&font::GLYPH_N),
-            'D' => Some(&font::GLYPH_D),
-            '!' => Some(&font::GLYPH_EXCL),
-            ' ' => None,
-            _ => None,
-        }
-    }
-
-    pub fn render(fb: &mut BeyondFramebuffer) {
-        for y in 0..fb.height {
-            for x in 0..fb.width {
-                fb.put_pixel(x, y, Color::deep_blue());
-            }
-        }
-
-        let rect_w: usize = fb.width / 3;
-        let rect_h: usize = fb.height / 6;
-        let start_x: usize = (fb.width - rect_w) / 2;
-        let start_y: usize = (fb.height - rect_h) / 2;
-
-        for y in start_y..(start_y + rect_h) {
-            for x in start_x..(start_x + rect_w) {
-                fb.put_pixel(x, y, Color::white());
-            }
-        }
-
-        let text: &str = "HELLO BEYOND!";
-        let char_w: usize = 8 + 2;
-        let text_width: usize = (text.len()) * char_w;
-        let text_x: usize = start_x + (rect_w - text_width) / 2;
-        let text_y: usize = start_y + rect_h / 2 - 4;
-
-        Self::draw_text(fb, text_x, text_y, text, Color::black());
-    }
-
     pub fn draw_char(
         fb: &mut BeyondFramebuffer,
         x: usize,
@@ -64,13 +21,82 @@ impl Renderer {
         }
     }
 
-    pub fn draw_text(fb: &mut BeyondFramebuffer, x: usize, y: usize, text: &str, color: Color) {
-        let mut cx: usize = x;
-        for ch in text.chars() {
-            if let Some(g) = Self::glyph_for(ch) {
-                Self::draw_char(fb, cx, y, g, color);
-            }
-            cx += 8 + 2;
+    pub fn glyph_for(c: char) -> Option<&'static [u8; 8]> {
+        match c {
+            'A' => Some(&font::GLYPH_A),
+            'B' => Some(&font::GLYPH_B),
+            'C' => Some(&font::GLYPH_C),
+            'D' => Some(&font::GLYPH_D),
+            'E' => Some(&font::GLYPH_E),
+            'F' => Some(&font::GLYPH_F),
+            'G' => Some(&font::GLYPH_G),
+            'H' => Some(&font::GLYPH_H),
+            'I' => Some(&font::GLYPH_I),
+            'J' => Some(&font::GLYPH_J),
+            'K' => Some(&font::GLYPH_K),
+            'L' => Some(&font::GLYPH_L),
+            'M' => Some(&font::GLYPH_M),
+            'N' => Some(&font::GLYPH_N),
+            'O' => Some(&font::GLYPH_O),
+            'P' => Some(&font::GLYPH_P),
+            'Q' => Some(&font::GLYPH_Q),
+            'R' => Some(&font::GLYPH_R),
+            'S' => Some(&font::GLYPH_S),
+            'T' => Some(&font::GLYPH_T),
+            'U' => Some(&font::GLYPH_U),
+            'V' => Some(&font::GLYPH_V),
+            'W' => Some(&font::GLYPH_W),
+            'X' => Some(&font::GLYPH_X),
+            'Y' => Some(&font::GLYPH_Y),
+            'Z' => Some(&font::GLYPH_Z),
+            'a' => Some(&font::GLYPH_A_SMALL),
+            'b' => Some(&font::GLYPH_B_SMALL),
+            'c' => Some(&font::GLYPH_C_SMALL),
+            'd' => Some(&font::GLYPH_D_SMALL),
+            'e' => Some(&font::GLYPH_E_SMALL),
+            'f' => Some(&font::GLYPH_F_SMALL),
+            'g' => Some(&font::GLYPH_G_SMALL),
+            'h' => Some(&font::GLYPH_H_SMALL),
+            'i' => Some(&font::GLYPH_I_SMALL),
+            'j' => Some(&font::GLYPH_J_SMALL),
+            'k' => Some(&font::GLYPH_K_SMALL),
+            'l' => Some(&font::GLYPH_L_SMALL),
+            'm' => Some(&font::GLYPH_M_SMALL),
+            'n' => Some(&font::GLYPH_N_SMALL),
+            'o' => Some(&font::GLYPH_O_SMALL),
+            'p' => Some(&font::GLYPH_P_SMALL),
+            'q' => Some(&font::GLYPH_Q_SMALL),
+            'r' => Some(&font::GLYPH_R_SMALL),
+            's' => Some(&font::GLYPH_S_SMALL),
+            't' => Some(&font::GLYPH_T_SMALL),
+            'u' => Some(&font::GLYPH_U_SMALL),
+            'v' => Some(&font::GLYPH_V_SMALL),
+            'w' => Some(&font::GLYPH_W_SMALL),
+            'x' => Some(&font::GLYPH_X_SMALL),
+            'y' => Some(&font::GLYPH_Y_SMALL),
+            'z' => Some(&font::GLYPH_Z_SMALL),
+            '!' => Some(&font::GLYPH_EXCL),
+            ' ' => Some(&font::GLYPH_SPACE),
+            '?' => Some(&font::GLYPH_QUESTION),
+            '.' => Some(&font::GLYPH_DOT),
+            ',' => Some(&font::GLYPH_COMMA),
+            ':' => Some(&font::GLYPH_COLON),
+            ';' => Some(&font::GLYPH_SEMICOLON),
+            '-' => Some(&font::GLYPH_MINUS),
+            '_' => Some(&font::GLYPH_UNDERSCORE),
+            '+' => Some(&font::GLYPH_PLUS),
+            '*' => Some(&font::GLYPH_ASTERISK),
+            '/' => Some(&font::GLYPH_SLASH),
+            '(' => Some(&font::GLYPH_LPAREN),
+            ')' => Some(&font::GLYPH_RPAREN),
+            '[' => Some(&font::GLYPH_LBRACKET),
+            ']' => Some(&font::GLYPH_RBRACKET),
+            '{' => Some(&font::GLYPH_LBRACE),
+            '}' => Some(&font::GLYPH_RBRACE),
+            '=' => Some(&font::GLYPH_EQUAL),
+            '<' => Some(&font::GLYPH_LT),
+            '>' => Some(&font::GLYPH_GT),
+            _ => None,
         }
     }
 }
