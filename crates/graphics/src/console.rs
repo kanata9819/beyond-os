@@ -93,9 +93,8 @@ impl<'a> Console<'a> {
     }
 
     fn scroll_up(&mut self) {
-        let row_h: usize = 8; // フォント高さ
+        let row_h: usize = 8;
 
-        // 上の行に次の行をコピー
         for y in 0..(self.fb.height - row_h) {
             for x in 0..self.fb.width {
                 let color: Color = self.fb.get_pixel(x, y + row_h);
@@ -103,7 +102,6 @@ impl<'a> Console<'a> {
             }
         }
 
-        // 最後の行を消す
         for y in (self.fb.height - row_h)..self.fb.height {
             for x in 0..self.fb.width {
                 self.fb.put_pixel(x, y, self.bg);
