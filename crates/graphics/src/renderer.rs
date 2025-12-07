@@ -12,10 +12,15 @@ impl Renderer {
         glyph: &[u8; 8],
         color: Color,
     ) {
+        const SCALE: usize = 2;
         for (row, line) in glyph.iter().enumerate() {
             for col in 0..8 {
                 if (line >> (7 - col)) & 1 == 1 {
-                    fb.put_pixel(x + col, y + row, color);
+                    for sy in 0..SCALE {
+                        for sx in 0..SCALE {
+                            fb.put_pixel(x + col * SCALE + sx, y + row * SCALE + sy, color);
+                        }
+                    }
                 }
             }
         }
@@ -96,6 +101,16 @@ impl Renderer {
             '=' => Some(&font::GLYPH_EQUAL),
             '<' => Some(&font::GLYPH_LT),
             '>' => Some(&font::GLYPH_GT),
+            '0' => Some(&font::GLYPH_0),
+            '1' => Some(&font::GLYPH_1),
+            '2' => Some(&font::GLYPH_2),
+            '3' => Some(&font::GLYPH_3),
+            '4' => Some(&font::GLYPH_4),
+            '5' => Some(&font::GLYPH_5),
+            '6' => Some(&font::GLYPH_6),
+            '7' => Some(&font::GLYPH_7),
+            '8' => Some(&font::GLYPH_8),
+            '9' => Some(&font::GLYPH_9),
             _ => None,
         }
     }

@@ -61,7 +61,7 @@ impl<'a> Console<'a> {
     }
 
     fn write_char(&mut self, ch: char) {
-        const MARGIN_X: usize = 2;
+        const MARGIN_X: usize = 16;
         const MARGIN_Y: usize = 8;
         match ch {
             '\n' => {
@@ -70,7 +70,7 @@ impl<'a> Console<'a> {
             _ => {
                 if let Some(glyph) = Renderer::glyph_for(ch) {
                     let x: usize = self.cursor_col * (8 + MARGIN_X);
-                    let y: usize = self.cursor_row * 8 + MARGIN_Y;
+                    let y: usize = self.cursor_row * 16 + MARGIN_Y;
                     Renderer::draw_char(self.fb, x, y, glyph, self.fg);
                 }
 
