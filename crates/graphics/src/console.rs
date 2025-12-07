@@ -60,11 +60,12 @@ impl<'a> Console<'a> {
         match ch {
             '\n' => {
                 self.newline();
+                self.write_char('>');
             }
             _ => {
                 if let Some(glyph) = Renderer::glyph_for(ch) {
                     let x: usize = self.cursor_col * (8 + MARGIN_X);
-                    let y: usize = self.cursor_row * 16 + MARGIN_Y;
+                    let y: usize = self.cursor_row * 24 + MARGIN_Y;
                     Renderer::draw_char(self.fb, x, y, glyph, self.fg);
                 }
 
