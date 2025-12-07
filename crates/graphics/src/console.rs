@@ -62,7 +62,7 @@ impl<'a> Console<'a> {
 
     fn write_char(&mut self, ch: char) {
         const MARGIN_X: usize = 16;
-        const MARGIN_Y: usize = 8;
+        const MARGIN_Y: usize = 16;
         match ch {
             '\n' => {
                 self.newline();
@@ -86,7 +86,6 @@ impl<'a> Console<'a> {
         self.cursor_col = 0;
         self.cursor_row += 1;
 
-        // もし画面の行数を超えたらスクロール
         if self.cursor_row >= self.rows {
             self.scroll_up();
             self.cursor_row = self.rows - 1;
