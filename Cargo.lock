@@ -189,6 +189,7 @@ dependencies = [
  "bootloader_api",
  "graphics",
  "keyboard",
+ "shell",
 ]
 
 [[package]]
@@ -358,6 +359,10 @@ dependencies = [
  "serde",
  "serde_core",
 ]
+
+[[package]]
+name = "shell"
+version = "0.1.0"
 
 [[package]]
 name = "syn"

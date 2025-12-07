@@ -7,3 +7,4 @@ edition = "2024"
 bootloader_api = "0.11.13"
 graphics = { path = "../graphics" }
 keyboard = { path = "../drivers/keyboard" }
+shell = { path = "../shell" }

@@ -3,7 +3,7 @@ members = [
     "./crates/kernel",
     "./crates/os-runner",
     "crates/drivers/keyboard",
-    "crates/graphics",
+    "crates/graphics", "crates/shell",
 ]
 resolver = "3"
 
