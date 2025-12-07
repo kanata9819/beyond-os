@@ -36,6 +36,12 @@ impl<'a> Console<'a> {
         }
     }
 
+    pub fn prt(&mut self, s: &str) {
+        for ch in s.chars() {
+            self.write_char(ch);
+        }
+    }
+
     pub fn write_line(&mut self, s: &str) {
         self.write_str(s);
         self.write_char('\n');

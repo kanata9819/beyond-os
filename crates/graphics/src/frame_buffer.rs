@@ -14,7 +14,7 @@ impl<'a> BeyondFramebuffer<'a> {
             return;
         }
 
-        let idx: usize = ((y * self.stride + x) * self.bytes_per_pixel) as usize;
+        let idx: usize = (y * self.stride + x) * self.bytes_per_pixel;
         self.buf[idx] = c.b;
         self.buf[idx + 1] = c.g;
         self.buf[idx + 2] = c.r;
@@ -28,6 +28,7 @@ impl<'a> BeyondFramebuffer<'a> {
             return Color::black(); // またはデフォルトの色
         }
 
+        // 画面メモリ上の、あるピクセルの“開始位置”を求める計算
         let idx: usize = (y * self.stride + x) * self.bytes_per_pixel;
 
         let b: u8 = self.buf[idx];

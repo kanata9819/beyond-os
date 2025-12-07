@@ -17,12 +17,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         width: info.width,
         height: info.height,
         stride: info.stride,
-        bytes_per_pixel: info.bytes_per_pixel as usize,
+        bytes_per_pixel: info.bytes_per_pixel,
     };
 
     let mut console: Console = Console::new(&mut fb, Color::white(), Color::black());
-    console.write_str("> HELLO BEYOND!\n");
-    console.write_str("> HELLO BEYOND!");
+    console.write_str("WELCOME TO BEYOND!\n");
+    console.write_str(">");
 
     loop {
         unsafe {
