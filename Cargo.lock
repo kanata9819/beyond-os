@@ -188,7 +188,12 @@ version = "0.1.0"
 dependencies = [
  "bootloader_api",
  "graphics",
+ "keyboard",
 ]
+
+[[package]]
+name = "keyboard"
+version = "0.1.0"
 
 [[package]]
 name = "libc"

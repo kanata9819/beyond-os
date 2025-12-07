@@ -1,5 +1,10 @@
 [workspace]
-members = ["./crates/kernel", "./crates/os-runner", "crates/graphics"]
+members = [
+    "./crates/kernel",
+    "./crates/os-runner",
+    "crates/drivers/keyboard",
+    "crates/graphics",
+]
 resolver = "3"
 
 [workspace.dependencies]

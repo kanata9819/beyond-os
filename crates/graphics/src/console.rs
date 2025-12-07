@@ -36,18 +36,12 @@ impl<'a> Console<'a> {
         }
     }
 
-    pub fn prt(&mut self, s: &str) {
-        for ch in s.chars() {
-            self.write_char(ch);
-        }
-    }
-
     pub fn write_line(&mut self, s: &str) {
         self.write_str(s);
         self.write_char('\n');
     }
 
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         let w: usize = self.fb.width();
         let h: usize = self.fb.height();
         for y in 0..h {
@@ -60,7 +54,7 @@ impl<'a> Console<'a> {
         self.cursor_row = 0;
     }
 
-    fn write_char(&mut self, ch: char) {
+    pub fn write_char(&mut self, ch: char) {
         const MARGIN_X: usize = 16;
         const MARGIN_Y: usize = 16;
         match ch {
