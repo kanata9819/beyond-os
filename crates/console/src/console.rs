@@ -1,4 +1,4 @@
-use crate::{color::Color, frame_buffer::BeyondFramebuffer, renderer::Renderer};
+use graphics::{color::Color, frame_buffer::BeyondFramebuffer, renderer::Renderer};
 
 pub struct Console<'a> {
     fb: &'a mut BeyondFramebuffer<'a>,
