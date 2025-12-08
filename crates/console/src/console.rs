@@ -1,6 +1,5 @@
-use graphics::{color::Color, frame_buffer::BeyondFrameBufferTrait, renderer::Renderer};
-
-pub struct Console<'a, FB: BeyondFrameBufferTrait> {
+use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
+pub struct TextConsole<'a, FB: FrameBuffer> {
     fb: &'a mut FB,
     cursor_col: usize,
     cursor_row: usize,
@@ -10,13 +9,13 @@ pub struct Console<'a, FB: BeyondFrameBufferTrait> {
     bg: Color,
 }
 
-impl<'a, FB: BeyondFrameBufferTrait> Console<'a, FB> {
+impl<'a, FB: FrameBuffer> TextConsole<'a, FB> {
     pub fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
         const PIXEL: usize = 8;
         let cols: usize = fb.width() / PIXEL;
         let rows: usize = fb.height() / PIXEL;
 
-        let mut console: Console<'a, FB> = Self {
+        let mut console: TextConsole<'a, FB> = Self {
             fb,
             cursor_col: 0,
             cursor_row: 0,

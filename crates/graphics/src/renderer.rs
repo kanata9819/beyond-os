@@ -1,11 +1,11 @@
 use crate::color::Color;
 use crate::font;
-use crate::frame_buffer::BeyondFrameBufferTrait;
+use crate::graphics_trait::FrameBuffer;
 
 pub struct Renderer;
 
 impl Renderer {
-    pub fn draw_char<T: BeyondFrameBufferTrait>(
+    pub fn draw_char<T: FrameBuffer>(
         fb: &mut T,
         x: usize,
         y: usize,

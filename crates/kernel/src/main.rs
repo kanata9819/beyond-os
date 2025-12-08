@@ -2,7 +2,7 @@
 #![no_main]
 
 use bootloader_api::{BootInfo, entry_point};
-use console::console::Console;
+use console::console::TextConsole;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 
 entry_point!(kernel_main);
@@ -21,8 +21,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         bytes_per_pixel: info.bytes_per_pixel,
     };
 
-    let mut console: Console<'_, BeyondFramebuffer<'_>> =
-        Console::new(&mut fb, Color::white(), Color::black());
+    let mut console: TextConsole<'_, BeyondFramebuffer<'_>> =
+        TextConsole::new(&mut fb, Color::white(), Color::black());
 
     console.write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
 

@@ -1,13 +1,5 @@
 use crate::color::Color;
-
-pub trait BeyondFrameBufferTrait {
-    fn put_pixel(&mut self, x: usize, y: usize, c: Color);
-    fn get_pixel(&self, x: usize, y: usize) -> Color;
-    fn width(&self) -> usize;
-    fn height(&self) -> usize;
-    fn stride(&self) -> usize;
-    fn bpp(&self) -> usize;
-}
+use crate::graphics_trait::FrameBuffer;
 
 pub struct BeyondFramebuffer<'a> {
     pub buf: &'a mut [u8],
@@ -17,7 +9,7 @@ pub struct BeyondFramebuffer<'a> {
     pub bytes_per_pixel: usize,
 }
 
-impl<'a> BeyondFrameBufferTrait for BeyondFramebuffer<'a> {
+impl<'a> FrameBuffer for BeyondFramebuffer<'a> {
     fn put_pixel(&mut self, x: usize, y: usize, c: Color) {
         if x >= self.width || y >= self.height {
             return;
