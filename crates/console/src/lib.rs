@@ -2,4 +2,4 @@
 #![no_main]
 
 pub mod console;
-mod console_trait;
+pub mod console_trait;

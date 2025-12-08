@@ -2,7 +2,7 @@
 #![no_main]
 
 use bootloader_api::{BootInfo, entry_point};
-use console::console::TextConsole;
+use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 
 entry_point!(kernel_main);

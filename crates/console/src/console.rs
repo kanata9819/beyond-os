@@ -1,4 +1,6 @@
+use crate::console_trait::Console;
 use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
+
 pub struct TextConsole<'a, FB: FrameBuffer> {
     fb: &'a mut FB,
     cursor_col: usize,
@@ -9,8 +11,8 @@ pub struct TextConsole<'a, FB: FrameBuffer> {
     bg: Color,
 }
 
-impl<'a, FB: FrameBuffer> TextConsole<'a, FB> {
-    pub fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
+impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
+    fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
         const PIXEL: usize = 8;
         let cols: usize = fb.width() / PIXEL;
         let rows: usize = fb.height() / PIXEL;
@@ -29,13 +31,13 @@ impl<'a, FB: FrameBuffer> TextConsole<'a, FB> {
         console
     }
 
-    pub fn write_str(&mut self, s: &str) {
+    fn write_str(&mut self, s: &str) {
         for ch in s.chars() {
             self.write_char(ch);
         }
     }
 
-    pub fn write_line(&mut self, s: &str) {
+    fn write_line(&mut self, s: &str) {
         self.write_str(s);
         self.write_char('\n');
     }
@@ -53,7 +55,7 @@ impl<'a, FB: FrameBuffer> TextConsole<'a, FB> {
         self.cursor_row = 0;
     }
 
-    pub fn write_char(&mut self, ch: char) {
+    fn write_char(&mut self, ch: char) {
         const MARGIN_X: usize = 16;
         const MARGIN_Y: usize = 16;
         match ch {
@@ -76,7 +78,7 @@ impl<'a, FB: FrameBuffer> TextConsole<'a, FB> {
         }
     }
 
-    pub fn newline(&mut self) {
+    fn newline(&mut self) {
         self.cursor_col = 0;
         self.cursor_row += 1;
 
