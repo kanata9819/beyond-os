@@ -1,4 +1,4 @@
-use crate::console_trait::Console;
+use crate::console_trait::{Console, ConsoleOut};
 use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
 
 pub struct TextConsole<'a, FB: FrameBuffer> {
@@ -30,7 +30,9 @@ impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
         console.clear();
         console
     }
+}
 
+impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
     fn write_str(&mut self, s: &str) {
         for ch in s.chars() {
             self.write_char(ch);

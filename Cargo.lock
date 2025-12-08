@@ -172,6 +172,9 @@ dependencies = [
 [[package]]
 name = "graphics"
 version = "0.1.0"
+dependencies = [
+ "bootloader_api",
+]
 
 [[package]]
 name = "itoa"
@@ -373,6 +376,7 @@ name = "shell"
 version = "0.1.0"
 dependencies = [
  "console",
+ "keyboard",
 ]
 
 [[package]]

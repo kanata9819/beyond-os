@@ -1,16 +1,34 @@
 #![no_std]
 #![no_main]
 
-pub struct Shell {
-    pub input_buffer: [u8; 128],
-    pub length: usize,
+use console::console_trait::ConsoleOut;
+use keyboard;
+
+pub struct Shell<C: ConsoleOut> {
+    console: C,
+    input_buffer: [u8; 128],
+    length: usize,
 }
 
-impl Shell {
-    pub fn new() -> Self {
+impl<C: ConsoleOut> Shell<C> {
+    pub fn new(console: C) -> Self {
         Self {
+            console: console,
             input_buffer: [0; 128],
             length: 0,
+        }
+    }
+
+    pub fn run_shell(&mut self) -> ! {
+        self.console
+            .write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
+
+        loop {
+            if let Some(code) = unsafe { keyboard::read_scancode() } {
+                if let Some(char) = keyboard::scancode_to_char(code) {
+                    self.console.write_char(char);
+                }
+            }
         }
     }
 

@@ -4,37 +4,23 @@
 use bootloader_api::{BootInfo, entry_point};
 use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
+use shell::Shell;
 
 entry_point!(kernel_main);
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
-    let fb: &mut bootloader_api::info::FrameBuffer =
-        boot_info.framebuffer.as_mut().expect("no framebuffer");
-    let info: bootloader_api::info::FrameBufferInfo = fb.info();
-    let buffer: &mut [u8] = fb.buffer_mut();
+    match BeyondFramebuffer::from_boot_info(boot_info) {
+        Some(mut frame_buffer) => {
+            let console: TextConsole<'_, BeyondFramebuffer<'_>> =
+                TextConsole::new(&mut frame_buffer, Color::white(), Color::black());
+            let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
 
-    let mut fb: BeyondFramebuffer<'_> = BeyondFramebuffer {
-        buf: buffer,
-        width: info.width,
-        height: info.height,
-        stride: info.stride,
-        bytes_per_pixel: info.bytes_per_pixel,
-    };
-
-    let mut console: TextConsole<'_, BeyondFramebuffer<'_>> =
-        TextConsole::new(&mut fb, Color::white(), Color::black());
-
-    console.write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
-
-    loop {
-        unsafe {
-            if let Some(code) = keyboard::read_scancode() {
-                if let Some(char) = keyboard::scancode_to_char(code) {
-                    console.write_char(char);
-                }
-            }
+            shell.run_shell();
         }
-    }
+        None => {
+            panic!("No FrameBuffer!")
+        }
+    };
 }
 
 #[cfg(not(test))]
