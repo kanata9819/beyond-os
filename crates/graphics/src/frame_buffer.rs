@@ -1,5 +1,14 @@
 use crate::color::Color;
 
+pub trait BeyondFrameBufferTrait {
+    fn put_pixel(&mut self, x: usize, y: usize, c: Color);
+    fn get_pixel(&self, x: usize, y: usize) -> Color;
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
+    fn stride(&self) -> usize;
+    fn bpp(&self) -> usize;
+}
+
 pub struct BeyondFramebuffer<'a> {
     pub buf: &'a mut [u8],
     pub width: usize,
@@ -8,8 +17,8 @@ pub struct BeyondFramebuffer<'a> {
     pub bytes_per_pixel: usize,
 }
 
-impl<'a> BeyondFramebuffer<'a> {
-    pub fn put_pixel(&mut self, x: usize, y: usize, c: Color) {
+impl<'a> BeyondFrameBufferTrait for BeyondFramebuffer<'a> {
+    fn put_pixel(&mut self, x: usize, y: usize, c: Color) {
         if x >= self.width || y >= self.height {
             return;
         }
@@ -23,7 +32,7 @@ impl<'a> BeyondFramebuffer<'a> {
         }
     }
 
-    pub fn get_pixel(&self, x: usize, y: usize) -> Color {
+    fn get_pixel(&self, x: usize, y: usize) -> Color {
         if x >= self.width || y >= self.height {
             return Color::black(); // またはデフォルトの色
         }
@@ -38,16 +47,16 @@ impl<'a> BeyondFramebuffer<'a> {
         Color { r, g, b }
     }
 
-    pub fn width(&self) -> usize {
+    fn width(&self) -> usize {
         self.width
     }
-    pub fn height(&self) -> usize {
+    fn height(&self) -> usize {
         self.height
     }
-    pub fn stride(&self) -> usize {
+    fn stride(&self) -> usize {
         self.stride
     }
-    pub fn bpp(&self) -> usize {
+    fn bpp(&self) -> usize {
         self.bytes_per_pixel
     }
 }

@@ -21,7 +21,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         bytes_per_pixel: info.bytes_per_pixel,
     };
 
-    let mut console: Console = Console::new(&mut fb, Color::white(), Color::black());
+    let mut console: Console<'_, BeyondFramebuffer<'_>> =
+        Console::new(&mut fb, Color::white(), Color::black());
+
     console.write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
 
     loop {

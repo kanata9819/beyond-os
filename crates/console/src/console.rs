@@ -1,7 +1,7 @@
-use graphics::{color::Color, frame_buffer::BeyondFramebuffer, renderer::Renderer};
+use graphics::{color::Color, frame_buffer::BeyondFrameBufferTrait, renderer::Renderer};
 
-pub struct Console<'a> {
-    fb: &'a mut BeyondFramebuffer<'a>,
+pub struct Console<'a, FB: BeyondFrameBufferTrait> {
+    fb: &'a mut FB,
     cursor_col: usize,
     cursor_row: usize,
     cols: usize,
@@ -10,13 +10,13 @@ pub struct Console<'a> {
     bg: Color,
 }
 
-impl<'a> Console<'a> {
-    pub fn new(fb: &'a mut BeyondFramebuffer<'a>, fg: Color, bg: Color) -> Self {
+impl<'a, FB: BeyondFrameBufferTrait> Console<'a, FB> {
+    pub fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
         const PIXEL: usize = 8;
         let cols: usize = fb.width() / PIXEL;
         let rows: usize = fb.height() / PIXEL;
 
-        let mut console: Console<'a> = Self {
+        let mut console: Console<'a, FB> = Self {
             fb,
             cursor_col: 0,
             cursor_row: 0,
@@ -90,15 +90,15 @@ impl<'a> Console<'a> {
     fn scroll_up(&mut self) {
         let row_h: usize = 8;
 
-        for y in 0..(self.fb.height - row_h) {
-            for x in 0..self.fb.width {
+        for y in 0..(self.fb.height() - row_h) {
+            for x in 0..self.fb.width() {
                 let color: Color = self.fb.get_pixel(x, y + row_h);
                 self.fb.put_pixel(x, y, color);
             }
         }
 
-        for y in (self.fb.height - row_h)..self.fb.height {
-            for x in 0..self.fb.width {
+        for y in (self.fb.height() - row_h)..self.fb.height() {
+            for x in 0..self.fb.width() {
                 self.fb.put_pixel(x, y, self.bg);
             }
         }
