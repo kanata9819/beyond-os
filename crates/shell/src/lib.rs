@@ -34,7 +34,7 @@ impl<C: ConsoleOut> Shell<C> {
 
     pub fn push_char(&mut self, ch: char) {
         if self.length < self.input_buffer.len() {
-            self.input_buffer[self.length] = ch as u8; // 今は ASCII 想定でOK
+            self.input_buffer[self.length] = ch as u8;
             self.length += 1;
         }
     }
