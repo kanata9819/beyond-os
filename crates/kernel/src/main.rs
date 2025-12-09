@@ -1,10 +1,13 @@
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
 
+mod interrupts;
 use bootloader_api::{BootInfo, entry_point};
 use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use shell::Shell;
+use x86_64::instructions::interrupts as cpu_int;
 
 entry_point!(kernel_main);
 
@@ -14,6 +17,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             let console: TextConsole<'_, BeyondFramebuffer<'_>> =
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black());
             let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
+
+            interrupts::init_idt();
+            interrupts::init_pics();
+            cpu_int::enable();
 
             shell.run_shell();
         }

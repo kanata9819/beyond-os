@@ -1,9 +1,11 @@
 [workspace]
 members = [
     "./crates/kernel",
-    "./crates/os-runner", "crates/console",
+    "./crates/os-runner",
+    "crates/console",
     "crates/drivers/keyboard",
-    "crates/graphics", "crates/shell",
+    "crates/graphics",
+    "crates/shell",
 ]
 resolver = "3"
 
