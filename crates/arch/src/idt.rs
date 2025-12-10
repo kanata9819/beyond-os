@@ -1,5 +1,4 @@
 use crate::interrupt_handlers::{keyboard_interrupt_handler, timer_interrupt_handler};
-use crate::interrupts;
 use crate::pic::PIC_1_OFFSET;
 use spin::once::Once;
 use x86_64::structures::idt::InterruptDescriptorTable;
@@ -21,7 +20,6 @@ impl InterruptIndex {
 
 pub fn init_idt() {
     let mut idt: InterruptDescriptorTable = InterruptDescriptorTable::new();
-    interrupts::init_interrupts();
     idt[InterruptIndex::Timer.as_u8()].set_handler_fn(timer_interrupt_handler);
     idt[InterruptIndex::Keyboard.as_u8()].set_handler_fn(keyboard_interrupt_handler);
 

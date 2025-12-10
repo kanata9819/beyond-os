@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use arch::idt;
+use arch::{idt, interrupts};
 use bootloader_api::{BootInfo, entry_point};
 use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
@@ -18,6 +18,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
 
             idt::init_idt();
+            interrupts::init_interrupts();
             cpu_int::enable();
 
             shell.run_shell();
