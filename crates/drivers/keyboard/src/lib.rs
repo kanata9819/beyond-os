@@ -1,6 +1,43 @@
 #![no_std]
 #![no_main]
 
+const KB_BUF_SIZE: usize = 256;
+
+pub struct KeyboardBuffer {
+    buf: [u8; KB_BUF_SIZE],
+    head: usize,
+    tail: usize,
+}
+
+impl KeyboardBuffer {
+    pub const fn new() -> Self {
+        Self {
+            buf: [0; KB_BUF_SIZE],
+            head: 0,
+            tail: 0,
+        }
+    }
+
+    pub fn push(&mut self, scancode: u8) {
+        let next_head: usize = (self.head + 1) % KB_BUF_SIZE;
+        // 一杯のときは上書き or 無視、好きな方で
+        if next_head != self.tail {
+            self.buf[self.head] = scancode;
+            self.head = next_head;
+        }
+    }
+
+    pub fn pop(&mut self) -> Option<u8> {
+        if self.head == self.tail {
+            None
+        } else {
+            let val: u8 = self.buf[self.tail];
+            self.tail = (self.tail + 1) % KB_BUF_SIZE;
+            Some(val)
+        }
+    }
+}
+
 #[inline]
 unsafe fn inb(port: u16) -> u8 {
     unsafe {
