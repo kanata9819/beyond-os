@@ -9,6 +9,5 @@ graphics = { path = "../graphics" }
 keyboard = { path = "../drivers/keyboard" }
 shell = { path = "../shell" }
 console = { path = "../console" }
-pic8259 = "0.11.0"
-spin = "0.10.0"
+arch = { path = "../arch" }
 x86_64 = "0.15.4"

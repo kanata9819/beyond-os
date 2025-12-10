@@ -1,0 +1,9 @@
+[package]
+name = "arch"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pic8259 = "0.11.0"
+spin = "0.10.0"
+x86_64 = "0.15.4"

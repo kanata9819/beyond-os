@@ -1,8 +1,7 @@
 #![no_std]
 #![no_main]
-#![feature(abi_x86_interrupt)]
 
-mod interrupts;
+use arch::interrupts;
 use bootloader_api::{BootInfo, entry_point};
 use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};

@@ -1,7 +1,9 @@
 use pic8259::ChainedPics;
 use spin::{Mutex, Once};
-use x86_64::instructions::port::Port;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::{
+    instructions::port::{Port, PortGeneric, ReadWriteAccess},
+    structures::idt::{InterruptDescriptorTable, InterruptStackFrame},
+};
 
 // PIC を 32 番以降にリマップ
 pub const PIC_1_OFFSET: u8 = 32;
@@ -25,7 +27,6 @@ static IDT: Once<InterruptDescriptorTable> = Once::new();
 
 pub fn init_idt() {
     let mut idt: InterruptDescriptorTable = InterruptDescriptorTable::new();
-
     idt[InterruptIndex::Timer.as_u8()].set_handler_fn(timer_interrupt_handler);
     idt[InterruptIndex::Keyboard.as_u8()].set_handler_fn(keyboard_interrupt_handler);
 
@@ -60,7 +61,7 @@ impl KeyboardBuffer {
     }
 
     fn push(&mut self, scancode: u8) {
-        let next_head = (self.head + 1) % KB_BUF_SIZE;
+        let next_head: usize = (self.head + 1) % KB_BUF_SIZE;
         // 一杯のときは上書き or 無視、好きな方で
         if next_head != self.tail {
             self.buf[self.head] = scancode;
@@ -72,7 +73,7 @@ impl KeyboardBuffer {
         if self.head == self.tail {
             None
         } else {
-            let val = self.buf[self.tail];
+            let val: u8 = self.buf[self.tail];
             self.tail = (self.tail + 1) % KB_BUF_SIZE;
             Some(val)
         }
@@ -97,7 +98,7 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
 
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
     // 0x60 からスキャンコードを読む
-    let mut port = Port::<u8>::new(0x60);
+    let mut port: PortGeneric<u8, ReadWriteAccess> = Port::<u8>::new(0x60);
     let scancode: u8 = unsafe { port.read() };
 
     // バッファに詰める

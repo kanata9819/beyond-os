@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "./crates/kernel",
-    "./crates/os-runner",
+    "./crates/os-runner", "crates/arch",
     "crates/console",
     "crates/drivers/keyboard",
     "crates/graphics",
