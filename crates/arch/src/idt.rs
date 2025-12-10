@@ -1,5 +1,5 @@
 use crate::interrupt_handlers::{keyboard_interrupt_handler, timer_interrupt_handler};
-use crate::interrupts::PIC_1_OFFSET;
+use crate::pic::PIC_1_OFFSET;
 use spin::once::Once;
 use x86_64::structures::idt::InterruptDescriptorTable;
 

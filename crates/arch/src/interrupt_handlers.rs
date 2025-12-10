@@ -1,5 +1,5 @@
 use crate::idt::InterruptIndex;
-use crate::interrupts::PICS;
+use crate::pic::PICS;
 use spin::Mutex;
 use x86_64::{
     instructions::port::{Port, PortGeneric, ReadWriteAccess},
