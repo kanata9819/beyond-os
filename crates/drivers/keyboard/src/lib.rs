@@ -1,8 +1,18 @@
 #![no_std]
 #![no_main]
 
-const KB_BUF_SIZE: usize = 256;
+use spin::Mutex;
 
+const KB_BUF_SIZE: usize = 256;
+static KEYBOARD_BUFFER: Mutex<KeyboardBuffer> = Mutex::new(KeyboardBuffer::new());
+
+pub fn on_scancode(scancode: u8) {
+    KEYBOARD_BUFFER.lock().push(scancode);
+}
+
+pub fn pop_scancode() -> Option<u8> {
+    KEYBOARD_BUFFER.lock().pop()
+}
 pub struct KeyboardBuffer {
     buf: [u8; KB_BUF_SIZE],
     head: usize,
@@ -18,7 +28,7 @@ impl KeyboardBuffer {
         }
     }
 
-    pub fn push(&mut self, scancode: u8) {
+    fn push(&mut self, scancode: u8) {
         let next_head: usize = (self.head + 1) % KB_BUF_SIZE;
         // 一杯のときは上書き or 無視、好きな方で
         if next_head != self.tail {
@@ -27,7 +37,7 @@ impl KeyboardBuffer {
         }
     }
 
-    pub fn pop(&mut self) -> Option<u8> {
+    fn pop(&mut self) -> Option<u8> {
         if self.head == self.tail {
             None
         } else {

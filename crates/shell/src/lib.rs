@@ -24,10 +24,14 @@ impl<C: ConsoleOut> Shell<C> {
             .write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
 
         loop {
-            if let Some(code) = unsafe { keyboard::read_scancode() } {
+            if let Some(code) = keyboard::pop_scancode() {
                 if let Some(char) = keyboard::scancode_to_char(code) {
                     self.console.write_char(char);
                 }
+            }
+
+            unsafe {
+                core::arch::asm!("hlt");
             }
         }
     }
