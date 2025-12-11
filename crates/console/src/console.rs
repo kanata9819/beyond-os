@@ -69,7 +69,6 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
 
     fn write_line(&mut self, s: &str) {
         self.write_string(s);
-        self.write_charactor('\n');
     }
 
     fn clear(&mut self) {
@@ -91,7 +90,6 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
         match ch {
             '\n' => {
                 self.newline();
-                self.write_charactor('>');
             }
             _ => {
                 if let Some(glyph) = Renderer::glyph_for(ch) {

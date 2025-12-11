@@ -2,7 +2,7 @@
 #![no_main]
 
 use arch::{idt, interrupts};
-use bootloader_api::{BootInfo, entry_point};
+use bootloader_api::{entry_point, BootInfo};
 use console::{console::TextConsole, console_trait::Console};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use shell::Shell;

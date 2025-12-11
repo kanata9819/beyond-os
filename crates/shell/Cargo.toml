@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 console = { path = "../console" }
 keyboard = { path = "../drivers/keyboard" }
+meta = { path = "../meta" }
