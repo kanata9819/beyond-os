@@ -1,5 +1,12 @@
 use crate::console_trait::{Console, ConsoleOut};
+use core::fmt::Write;
+use graphics::frame_buffer::BeyondFramebuffer;
 use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
+use spin::{Mutex, Once};
+
+pub type KernelConsole = TextConsole<'static, graphics::frame_buffer::BeyondFramebuffer<'static>>;
+
+static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
 
 pub struct TextConsole<'a, FB: FrameBuffer> {
     fb: &'a mut FB,
@@ -9,6 +16,27 @@ pub struct TextConsole<'a, FB: FrameBuffer> {
     rows: usize,
     fg: Color,
     bg: Color,
+}
+
+pub fn init_console(fb: &'static mut BeyondFramebuffer<'static>) {
+    let console = KernelConsole::new(fb, Color::white(), Color::black());
+    CONSOLE.call_once(|| Mutex::new(console));
+}
+
+pub fn _print(args: core::fmt::Arguments) {
+    if let Some(console) = CONSOLE.get() {
+        let mut locked = console.lock();
+        locked.write_fmt(args).unwrap();
+    }
+}
+
+impl<'a, FB: FrameBuffer> Write for TextConsole<'a, FB> {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        for ch in s.chars() {
+            ConsoleOut::write_charactor(self, ch); // ← ここは自分の実装に合わせて
+        }
+        Ok(())
+    }
 }
 
 impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
@@ -33,15 +61,15 @@ impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
 }
 
 impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
-    fn write_str(&mut self, s: &str) {
+    fn write_string(&mut self, s: &str) {
         for ch in s.chars() {
-            self.write_char(ch);
+            self.write_charactor(ch);
         }
     }
 
     fn write_line(&mut self, s: &str) {
-        self.write_str(s);
-        self.write_char('\n');
+        self.write_string(s);
+        self.write_charactor('\n');
     }
 
     fn clear(&mut self) {
@@ -57,13 +85,13 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
         self.cursor_row = 0;
     }
 
-    fn write_char(&mut self, ch: char) {
+    fn write_charactor(&mut self, ch: char) {
         const MARGIN_X: usize = 16;
         const MARGIN_Y: usize = 16;
         match ch {
             '\n' => {
                 self.newline();
-                self.write_char('>');
+                self.write_charactor('>');
             }
             _ => {
                 if let Some(glyph) = Renderer::glyph_for(ch) {

@@ -13,6 +13,7 @@ pub fn on_scancode(scancode: u8) {
 pub fn pop_scancode() -> Option<u8> {
     KEYBOARD_BUFFER.lock().pop()
 }
+
 pub struct KeyboardBuffer {
     buf: [u8; KB_BUF_SIZE],
     head: usize,

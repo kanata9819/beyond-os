@@ -6,10 +6,10 @@ pub trait Console<'a, FB: FrameBuffer> {
 }
 
 pub trait ConsoleOut {
-    fn write_str(&mut self, s: &str);
+    fn write_string(&mut self, s: &str);
     fn write_line(&mut self, s: &str);
     fn clear(&mut self);
-    fn write_char(&mut self, ch: char);
+    fn write_charactor(&mut self, ch: char);
     fn newline(&mut self);
     fn scroll_up(&mut self);
 }

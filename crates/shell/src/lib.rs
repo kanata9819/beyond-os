@@ -21,12 +21,12 @@ impl<C: ConsoleOut> Shell<C> {
 
     pub fn run_shell(&mut self) -> ! {
         self.console
-            .write_str("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
+            .write_string("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
 
         loop {
             if let Some(code) = keyboard::pop_scancode() {
                 if let Some(char) = keyboard::scancode_to_char(code) {
-                    self.console.write_char(char);
+                    self.console.write_charactor(char);
                 }
             }
 
