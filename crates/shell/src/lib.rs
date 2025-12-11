@@ -2,6 +2,7 @@
 #![no_main]
 
 use console::console_trait::ConsoleOut;
+use core::arch::asm;
 use keyboard;
 
 pub struct Shell<C: ConsoleOut> {
@@ -31,7 +32,7 @@ impl<C: ConsoleOut> Shell<C> {
             }
 
             unsafe {
-                core::arch::asm!("hlt");
+                asm!("hlt");
             }
         }
     }
