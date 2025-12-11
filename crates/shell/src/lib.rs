@@ -41,6 +41,11 @@ impl<C: ConsoleOut> Shell<C> {
                             // 次のプロンプト出すならここで
                             self.console.write_charactor('>');
                         }
+                        '\u{0008}' => {
+                            if let Some(ch) = self.pop_char() {
+                                self.console.write_charactor(ch);
+                            };
+                        }
                         _ => {
                             self.console.write_charactor(char);
                             self.push_char(char);
