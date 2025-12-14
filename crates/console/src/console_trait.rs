@@ -10,6 +10,9 @@ pub trait ConsoleOut {
     fn write_line(&mut self, s: &str);
     fn clear(&mut self);
     fn write_charactor(&mut self, ch: char);
+    fn write_charactor_at(&mut self, ch: char);
+    fn backspace(&mut self);
     fn newline(&mut self);
     fn scroll_up(&mut self);
+    fn erase_cell(&mut self);
 }

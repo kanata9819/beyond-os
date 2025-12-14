@@ -42,9 +42,11 @@ impl<C: ConsoleOut> Shell<C> {
                             self.console.write_charactor('>');
                         }
                         '\u{0008}' => {
-                            if let Some(ch) = self.pop_char() {
-                                self.console.write_charactor(ch);
-                            };
+                            if self.length > 0 {
+                                if let Some(_) = self.pop_char() {
+                                    self.console.backspace();
+                                };
+                            }
                         }
                         _ => {
                             self.console.write_charactor(char);

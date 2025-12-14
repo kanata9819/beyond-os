@@ -7,6 +7,9 @@ use spin::{Mutex, Once};
 pub type KernelConsole = TextConsole<'static, graphics::frame_buffer::BeyondFramebuffer<'static>>;
 
 static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
+const PIXEL: usize = 8;
+const MARGIN_X: usize = 16;
+const MARGIN_Y: usize = 16;
 
 pub struct TextConsole<'a, FB: FrameBuffer> {
     fb: &'a mut FB,
@@ -33,7 +36,7 @@ pub fn _print(args: core::fmt::Arguments) {
 impl<'a, FB: FrameBuffer> Write for TextConsole<'a, FB> {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for ch in s.chars() {
-            ConsoleOut::write_charactor(self, ch); // ← ここは自分の実装に合わせて
+            ConsoleOut::write_charactor(self, ch);
         }
         Ok(())
     }
@@ -41,7 +44,6 @@ impl<'a, FB: FrameBuffer> Write for TextConsole<'a, FB> {
 
 impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
     fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
-        const PIXEL: usize = 8;
         let cols: usize = fb.width() / PIXEL;
         let rows: usize = fb.height() / PIXEL;
 
@@ -85,8 +87,6 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
     }
 
     fn write_charactor(&mut self, ch: char) {
-        const MARGIN_X: usize = 16;
-        const MARGIN_Y: usize = 16;
         match ch {
             '\n' => {
                 self.newline();
@@ -101,6 +101,21 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
                 self.cursor_col += 1;
                 if self.cursor_col >= self.cols {
                     self.newline();
+                }
+            }
+        }
+    }
+
+    fn write_charactor_at(&mut self, ch: char) {
+        match ch {
+            '\n' => {
+                self.newline();
+            }
+            _ => {
+                if let Some(glyph) = Renderer::glyph_for(ch) {
+                    let x: usize = self.cursor_col * (8 + MARGIN_X);
+                    let y: usize = self.cursor_row * 24 + MARGIN_Y;
+                    Renderer::draw_char(self.fb, x, y, glyph, self.fg);
                 }
             }
         }
@@ -129,6 +144,29 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
         for y in (self.fb.height() - row_h)..self.fb.height() {
             for x in 0..self.fb.width() {
                 self.fb.put_pixel(x, y, self.bg);
+            }
+        }
+    }
+
+    fn backspace(&mut self) {
+        if self.cursor_col > 0 {
+            self.cursor_col -= 1;
+        } else if self.cursor_row > 0 {
+            self.cursor_row -= 1;
+            self.cursor_col = self.cols - 1;
+        }
+
+        Self::erase_cell(self);
+    }
+
+    fn erase_cell(&mut self) {
+        let x0 = self.cursor_col * (8 + MARGIN_X);
+        let y0 = self.cursor_row * 24 + MARGIN_Y;
+        let char_w = 8 * 2; // glyph width * SCALE
+        let char_h = 8 * 2; // glyph height * SCALE
+        for y in 0..char_h {
+            for x in 0..char_w {
+                self.fb.put_pixel(x0 + x, y0 + y, self.bg);
             }
         }
     }
