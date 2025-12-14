@@ -2,6 +2,8 @@ use crate::color::Color;
 use crate::font;
 use crate::graphics_trait::FrameBuffer;
 
+pub const SCALE: usize = 2;
+
 pub struct Renderer;
 
 impl Renderer {
@@ -9,10 +11,9 @@ impl Renderer {
         fb: &mut T,
         x: usize,
         y: usize,
-        glyph: &[u8; 8],
+        glyph: &[u8; 16],
         color: Color,
     ) {
-        const SCALE: usize = 2;
         for (row, line) in glyph.iter().enumerate() {
             for col in 0..8 {
                 if (line >> (7 - col)) & 1 == 1 {
@@ -26,7 +27,7 @@ impl Renderer {
         }
     }
 
-    pub fn glyph_for(c: char) -> Option<&'static [u8; 8]> {
+    pub fn glyph_for(c: char) -> Option<&'static [u8; 16]> {
         match c {
             'A' => Some(&font::GLYPH_A),
             'B' => Some(&font::GLYPH_B),

@@ -1,15 +1,23 @@
 use crate::console_trait::{Console, ConsoleOut};
 use core::fmt::Write;
 use graphics::frame_buffer::BeyondFramebuffer;
-use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
+use graphics::{
+    color::Color,
+    graphics_trait::FrameBuffer,
+    renderer::{self, Renderer},
+};
 use spin::{Mutex, Once};
 
 pub type KernelConsole = TextConsole<'static, BeyondFramebuffer<'static>>;
 
 static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
-const PIXEL: usize = 8;
-const MARGIN_X: usize = 16;
-const MARGIN_Y: usize = 16;
+const GLYPH_W: usize = 8;
+const GLYPH_H: usize = 16;
+const SCALE: usize = renderer::SCALE;
+const CHAR_W: usize = GLYPH_W * SCALE;
+const CHAR_H: usize = GLYPH_H * SCALE;
+const MARGIN_X: usize = 2;
+const MARGIN_Y: usize = 4;
 
 pub struct TextConsole<'a, FB: FrameBuffer> {
     fb: &'a mut FB,
@@ -44,8 +52,8 @@ impl<'a, FB: FrameBuffer> Write for TextConsole<'a, FB> {
 
 impl<'a, FB: FrameBuffer> Console<'a, FB> for TextConsole<'a, FB> {
     fn new(fb: &'a mut FB, fg: Color, bg: Color) -> Self {
-        let cols: usize = fb.width() / PIXEL;
-        let rows: usize = fb.height() / PIXEL;
+        let cols: usize = fb.width() / (CHAR_W + MARGIN_X);
+        let rows: usize = fb.height() / (CHAR_H + MARGIN_Y);
 
         let mut console: TextConsole<'a, FB> = Self {
             fb,
@@ -92,12 +100,7 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
                 self.newline();
             }
             _ => {
-                if let Some(glyph) = Renderer::glyph_for(ch) {
-                    let x: usize = self.cursor_col * (8 + MARGIN_X);
-                    let y: usize = self.cursor_row * 24 + MARGIN_Y;
-                    Renderer::draw_char(self.fb, x, y, glyph, self.fg);
-                }
-
+                self.write_charactor_at(ch);
                 self.cursor_col += 1;
                 if self.cursor_col >= self.cols {
                     self.newline();
@@ -113,8 +116,8 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
             }
             _ => {
                 if let Some(glyph) = Renderer::glyph_for(ch) {
-                    let x: usize = self.cursor_col * (8 + MARGIN_X);
-                    let y: usize = self.cursor_row * 24 + MARGIN_Y;
+                    let x: usize = self.cursor_col * (CHAR_W + MARGIN_X);
+                    let y: usize = self.cursor_row * (CHAR_H + MARGIN_Y) + MARGIN_Y;
                     Renderer::draw_char(self.fb, x, y, glyph, self.fg);
                 }
             }
@@ -132,7 +135,7 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
     }
 
     fn scroll_up(&mut self) {
-        let row_h: usize = 8;
+        let row_h: usize = CHAR_H + MARGIN_Y;
 
         for y in 0..(self.fb.height() - row_h) {
             for x in 0..self.fb.width() {
@@ -160,12 +163,10 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
     }
 
     fn erase_cell(&mut self) {
-        let x0: usize = self.cursor_col * (8 + MARGIN_X);
-        let y0: usize = self.cursor_row * 24 + MARGIN_Y;
-        let char_w: usize = 8 * 2;
-        let char_h: usize = 8 * 2;
-        for y in 0..char_h {
-            for x in 0..char_w {
+        let x0: usize = self.cursor_col * (CHAR_W + MARGIN_X);
+        let y0: usize = self.cursor_row * (CHAR_H + MARGIN_Y) + MARGIN_Y;
+        for y in 0..CHAR_H {
+            for x in 0..CHAR_W {
                 self.fb.put_pixel(x0 + x, y0 + y, self.bg);
             }
         }

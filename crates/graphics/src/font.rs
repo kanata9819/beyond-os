@@ -1,4 +1,13 @@
-pub const GLYPH_A: [u8; 8] = [
+// Expand 8-row glyphs to 16-row format with a top blank row and bottom padding.
+macro_rules! glyph8_to_16 {
+    ($l0:expr, $l1:expr, $l2:expr, $l3:expr, $l4:expr, $l5:expr, $l6:expr, $l7:expr $(,)?) => {
+        [
+            0, $l0, $l1, $l2, $l3, $l4, $l5, $l6, $l7, 0, 0, 0, 0, 0, 0, 0,
+        ]
+    };
+}
+
+pub const GLYPH_A: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b1000_0001,
@@ -8,7 +17,7 @@ pub const GLYPH_A: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_B: [u8; 8] = [
+pub const GLYPH_B: [u8; 16] = glyph8_to_16![
     0b1111_1110,
     0b1000_0001,
     0b1111_1110,
@@ -18,7 +27,7 @@ pub const GLYPH_B: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_C: [u8; 8] = [
+pub const GLYPH_C: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b1000_0001,
     0b1000_0000,
@@ -28,7 +37,7 @@ pub const GLYPH_C: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_D: [u8; 8] = [
+pub const GLYPH_D: [u8; 16] = glyph8_to_16![
     0b1111_1100,
     0b1000_0010,
     0b1000_0001,
@@ -38,7 +47,7 @@ pub const GLYPH_D: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_E: [u8; 8] = [
+pub const GLYPH_E: [u8; 16] = glyph8_to_16![
     0b1111_1111,
     0b1000_0000,
     0b1111_1110,
@@ -48,7 +57,7 @@ pub const GLYPH_E: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_F: [u8; 8] = [
+pub const GLYPH_F: [u8; 16] = glyph8_to_16![
     0b1111_1111,
     0b1000_0000,
     0b1111_1110,
@@ -58,7 +67,7 @@ pub const GLYPH_F: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_G: [u8; 8] = [
+pub const GLYPH_G: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b1000_0001,
     0b1000_0000,
@@ -68,7 +77,7 @@ pub const GLYPH_G: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_H: [u8; 8] = [
+pub const GLYPH_H: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b1000_0001,
     0b1111_1111,
@@ -78,7 +87,7 @@ pub const GLYPH_H: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_I: [u8; 8] = [
+pub const GLYPH_I: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0001_1000,
     0b0001_1000,
@@ -88,7 +97,7 @@ pub const GLYPH_I: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_J: [u8; 8] = [
+pub const GLYPH_J: [u8; 16] = glyph8_to_16![
     0b0001_1111,
     0b0000_0001,
     0b0000_0001,
@@ -98,7 +107,7 @@ pub const GLYPH_J: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_K: [u8; 8] = [
+pub const GLYPH_K: [u8; 16] = glyph8_to_16![
     0b1000_0010,
     0b1000_0100,
     0b1111_1000,
@@ -108,7 +117,7 @@ pub const GLYPH_K: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_L: [u8; 8] = [
+pub const GLYPH_L: [u8; 16] = glyph8_to_16![
     0b1000_0000,
     0b1000_0000,
     0b1000_0000,
@@ -118,7 +127,7 @@ pub const GLYPH_L: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_M: [u8; 8] = [
+pub const GLYPH_M: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b1100_0011,
     0b1010_0101,
@@ -129,7 +138,7 @@ pub const GLYPH_M: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_N: [u8; 8] = [
+pub const GLYPH_N: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b1100_0001,
     0b1010_0001,
@@ -139,7 +148,7 @@ pub const GLYPH_N: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_O: [u8; 8] = [
+pub const GLYPH_O: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b1000_0001,
     0b1000_0001,
@@ -149,7 +158,7 @@ pub const GLYPH_O: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_P: [u8; 8] = [
+pub const GLYPH_P: [u8; 16] = glyph8_to_16![
     0b1111_1110,
     0b1000_0001,
     0b1111_1110,
@@ -159,7 +168,7 @@ pub const GLYPH_P: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Q: [u8; 8] = [
+pub const GLYPH_Q: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b1000_0001,
     0b1000_0001,
@@ -169,7 +178,7 @@ pub const GLYPH_Q: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_R: [u8; 8] = [
+pub const GLYPH_R: [u8; 16] = glyph8_to_16![
     0b1111_1110,
     0b1000_0001,
     0b1111_1110,
@@ -179,7 +188,7 @@ pub const GLYPH_R: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_S: [u8; 8] = [
+pub const GLYPH_S: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b1000_0001,
     0b0111_1100,
@@ -189,7 +198,7 @@ pub const GLYPH_S: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_T: [u8; 8] = [
+pub const GLYPH_T: [u8; 16] = glyph8_to_16![
     0b1111_1111,
     0b0001_1000,
     0b0001_1000,
@@ -199,7 +208,7 @@ pub const GLYPH_T: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_U: [u8; 8] = [
+pub const GLYPH_U: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b1000_0001,
     0b1000_0001,
@@ -209,7 +218,7 @@ pub const GLYPH_U: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_V: [u8; 8] = [
+pub const GLYPH_V: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b0100_0010,
     0b0010_0100,
@@ -219,7 +228,7 @@ pub const GLYPH_V: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_W: [u8; 8] = [
+pub const GLYPH_W: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b1001_1001,
     0b1010_0101,
@@ -229,7 +238,7 @@ pub const GLYPH_W: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_X: [u8; 8] = [
+pub const GLYPH_X: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b0100_0010,
     0b0011_1100,
@@ -239,7 +248,7 @@ pub const GLYPH_X: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Y: [u8; 8] = [
+pub const GLYPH_Y: [u8; 16] = glyph8_to_16![
     0b1000_0001,
     0b0100_0010,
     0b0011_1100,
@@ -249,7 +258,7 @@ pub const GLYPH_Y: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Z: [u8; 8] = [
+pub const GLYPH_Z: [u8; 16] = glyph8_to_16![
     0b1111_1111,
     0b0000_0010,
     0b0000_1100,
@@ -259,7 +268,7 @@ pub const GLYPH_Z: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_EXCL: [u8; 8] = [
+pub const GLYPH_EXCL: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0011_1100,
     0b0011_1100,
@@ -269,7 +278,7 @@ pub const GLYPH_EXCL: [u8; 8] = [
     0b0011_1100,
     0,
 ];
-pub const GLYPH_QUESTION: [u8; 8] = [
+pub const GLYPH_QUESTION: [u8; 16] = glyph8_to_16![
     0b0111_1100,
     0b1000_0010,
     0b0000_0010,
@@ -279,12 +288,13 @@ pub const GLYPH_QUESTION: [u8; 8] = [
     0b0001_1000,
     0,
 ];
-pub const GLYPH_SPACE: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
-pub const GLYPH_COMMA: [u8; 8] = [0, 0, 0, 0, 0, 0, 0b0001_1000, 0b0011_0000];
-pub const GLYPH_DOT: [u8; 8] = [0, 0, 0, 0, 0, 0, 0b0001_1000, 0];
-pub const GLYPH_COLON: [u8; 8] = [0, 0b0001_1000, 0, 0, 0, 0b0001_1000, 0, 0];
-pub const GLYPH_SEMICOLON: [u8; 8] = [0, 0b0001_1000, 0, 0, 0, 0b0001_1000, 0b0011_0000, 0];
-pub const GLYPH_PLUS: [u8; 8] = [
+pub const GLYPH_SPACE: [u8; 16] = glyph8_to_16![0, 0, 0, 0, 0, 0, 0, 0];
+pub const GLYPH_COMMA: [u8; 16] = glyph8_to_16![0, 0, 0, 0, 0, 0, 0b0001_1000, 0b0011_0000];
+pub const GLYPH_DOT: [u8; 16] = glyph8_to_16![0, 0, 0, 0, 0, 0, 0b0001_1000, 0];
+pub const GLYPH_COLON: [u8; 16] = glyph8_to_16![0, 0b0001_1000, 0, 0, 0, 0b0001_1000, 0, 0];
+pub const GLYPH_SEMICOLON: [u8; 16] =
+    glyph8_to_16![0, 0b0001_1000, 0, 0, 0, 0b0001_1000, 0b0011_0000, 0];
+pub const GLYPH_PLUS: [u8; 16] = glyph8_to_16![
     0,
     0b0001_1000,
     0b0001_1000,
@@ -294,7 +304,7 @@ pub const GLYPH_PLUS: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_ASTERISK: [u8; 8] = [
+pub const GLYPH_ASTERISK: [u8; 16] = glyph8_to_16![
     0b0010_0100,
     0b0001_1000,
     0b0111_1110,
@@ -304,9 +314,9 @@ pub const GLYPH_ASTERISK: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_MINUS: [u8; 8] = [0, 0, 0, 0b0111_1100, 0, 0, 0, 0];
-pub const GLYPH_UNDERSCORE: [u8; 8] = [0, 0, 0, 0, 0, 0, 0b1111_1111, 0];
-pub const GLYPH_SLASH: [u8; 8] = [
+pub const GLYPH_MINUS: [u8; 16] = glyph8_to_16![0, 0, 0, 0b0111_1100, 0, 0, 0, 0];
+pub const GLYPH_UNDERSCORE: [u8; 16] = glyph8_to_16![0, 0, 0, 0, 0, 0, 0b1111_1111, 0];
+pub const GLYPH_SLASH: [u8; 16] = glyph8_to_16![
     0b0000_0001,
     0b0000_0010,
     0b0000_0100,
@@ -316,7 +326,7 @@ pub const GLYPH_SLASH: [u8; 8] = [
     0b0100_0000,
     0,
 ];
-pub const GLYPH_LPAREN: [u8; 8] = [
+pub const GLYPH_LPAREN: [u8; 16] = glyph8_to_16![
     0b0001_1100,
     0b0011_0000,
     0b0110_0000,
@@ -326,7 +336,7 @@ pub const GLYPH_LPAREN: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_RPAREN: [u8; 8] = [
+pub const GLYPH_RPAREN: [u8; 16] = glyph8_to_16![
     0b0111_0000,
     0b0001_1000,
     0b0000_1100,
@@ -336,7 +346,7 @@ pub const GLYPH_RPAREN: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_LBRACKET: [u8; 8] = [
+pub const GLYPH_LBRACKET: [u8; 16] = glyph8_to_16![
     0b0011_1110,
     0b0011_0000,
     0b0011_0000,
@@ -346,7 +356,7 @@ pub const GLYPH_LBRACKET: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_RBRACKET: [u8; 8] = [
+pub const GLYPH_RBRACKET: [u8; 16] = glyph8_to_16![
     0b0111_1100,
     0b0001_1100,
     0b0001_1100,
@@ -356,7 +366,7 @@ pub const GLYPH_RBRACKET: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_LBRACE: [u8; 8] = [
+pub const GLYPH_LBRACE: [u8; 16] = glyph8_to_16![
     0b0000_1110,
     0b0001_1000,
     0b0001_0000,
@@ -366,7 +376,7 @@ pub const GLYPH_LBRACE: [u8; 8] = [
     0b0000_1110,
     0,
 ];
-pub const GLYPH_RBRACE: [u8; 8] = [
+pub const GLYPH_RBRACE: [u8; 16] = glyph8_to_16![
     0b0111_0000,
     0b0001_1000,
     0b0000_1000,
@@ -376,8 +386,8 @@ pub const GLYPH_RBRACE: [u8; 8] = [
     0b0111_0000,
     0,
 ];
-pub const GLYPH_EQUAL: [u8; 8] = [0, 0b0111_1110, 0, 0b0111_1110, 0, 0, 0, 0];
-pub const GLYPH_LT: [u8; 8] = [
+pub const GLYPH_EQUAL: [u8; 16] = glyph8_to_16![0, 0b0111_1110, 0, 0b0111_1110, 0, 0, 0, 0];
+pub const GLYPH_LT: [u8; 16] = glyph8_to_16![
     0b0000_0110,
     0b0000_1100,
     0b0001_1000,
@@ -387,7 +397,7 @@ pub const GLYPH_LT: [u8; 8] = [
     0b0000_0110,
     0,
 ];
-pub const GLYPH_GT: [u8; 8] = [
+pub const GLYPH_GT: [u8; 16] = glyph8_to_16![
     0b0110_0000,
     0b0011_0000,
     0b0001_1000,
@@ -397,7 +407,7 @@ pub const GLYPH_GT: [u8; 8] = [
     0b0110_0000,
     0,
 ];
-pub const GLYPH_A_SMALL: [u8; 8] = [
+pub const GLYPH_A_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1100,
     0b0000_0010,
@@ -407,7 +417,7 @@ pub const GLYPH_A_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_B_SMALL: [u8; 8] = [
+pub const GLYPH_B_SMALL: [u8; 16] = glyph8_to_16![
     0b1000_0000,
     0b1111_1100,
     0b1000_0010,
@@ -417,7 +427,7 @@ pub const GLYPH_B_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_C_SMALL: [u8; 8] = [
+pub const GLYPH_C_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1110,
     0b1000_0000,
@@ -427,7 +437,7 @@ pub const GLYPH_C_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_D_SMALL: [u8; 8] = [
+pub const GLYPH_D_SMALL: [u8; 16] = glyph8_to_16![
     0b0000_0010,
     0b0111_1110,
     0b1000_0010,
@@ -437,7 +447,7 @@ pub const GLYPH_D_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_E_SMALL: [u8; 8] = [
+pub const GLYPH_E_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1110,
     0b1000_0001,
@@ -447,7 +457,7 @@ pub const GLYPH_E_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_F_SMALL: [u8; 8] = [
+pub const GLYPH_F_SMALL: [u8; 16] = glyph8_to_16![
     0b0001_1100,
     0b0010_0000,
     0b0111_1000,
@@ -457,7 +467,7 @@ pub const GLYPH_F_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_G_SMALL: [u8; 8] = [
+pub const GLYPH_G_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1110,
     0b1000_0010,
@@ -467,7 +477,7 @@ pub const GLYPH_G_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_H_SMALL: [u8; 8] = [
+pub const GLYPH_H_SMALL: [u8; 16] = glyph8_to_16![
     0b1000_0000,
     0b1111_1100,
     0b1000_0010,
@@ -477,8 +487,9 @@ pub const GLYPH_H_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_I_SMALL: [u8; 8] = [0, 0b0011_0000, 0, 0b0011_0000, 0b0011_0000, 0, 0, 0];
-pub const GLYPH_J_SMALL: [u8; 8] = [
+pub const GLYPH_I_SMALL: [u8; 16] =
+    glyph8_to_16![0, 0b0011_0000, 0, 0b0011_0000, 0b0011_0000, 0, 0, 0];
+pub const GLYPH_J_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0000_1100,
     0,
@@ -488,7 +499,7 @@ pub const GLYPH_J_SMALL: [u8; 8] = [
     0b0111_1100,
     0,
 ];
-pub const GLYPH_K_SMALL: [u8; 8] = [
+pub const GLYPH_K_SMALL: [u8; 16] = glyph8_to_16![
     0b1000_0000,
     0b1000_0100,
     0b1000_1000,
@@ -498,7 +509,7 @@ pub const GLYPH_K_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_L_SMALL: [u8; 8] = [
+pub const GLYPH_L_SMALL: [u8; 16] = glyph8_to_16![
     0b0011_0000,
     0b0011_0000,
     0b0011_0000,
@@ -508,7 +519,7 @@ pub const GLYPH_L_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_M_SMALL: [u8; 8] = [
+pub const GLYPH_M_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1101_1010,
     0b1010_0101,
@@ -518,7 +529,7 @@ pub const GLYPH_M_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_N_SMALL: [u8; 8] = [
+pub const GLYPH_N_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1111_1100,
     0b1000_0010,
@@ -528,7 +539,7 @@ pub const GLYPH_N_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_O_SMALL: [u8; 8] = [
+pub const GLYPH_O_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1100,
     0b1000_0010,
@@ -538,7 +549,7 @@ pub const GLYPH_O_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_P_SMALL: [u8; 8] = [
+pub const GLYPH_P_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1111_1100,
     0b1000_0010,
@@ -548,7 +559,7 @@ pub const GLYPH_P_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Q_SMALL: [u8; 8] = [
+pub const GLYPH_Q_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1100,
     0b1000_0010,
@@ -558,7 +569,7 @@ pub const GLYPH_Q_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_R_SMALL: [u8; 8] = [
+pub const GLYPH_R_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1111_1100,
     0b1000_0010,
@@ -568,7 +579,7 @@ pub const GLYPH_R_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_S_SMALL: [u8; 8] = [
+pub const GLYPH_S_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b0111_1110,
     0b1000_0000,
@@ -578,7 +589,7 @@ pub const GLYPH_S_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_T_SMALL: [u8; 8] = [
+pub const GLYPH_T_SMALL: [u8; 16] = glyph8_to_16![
     0b1111_1110,
     0b0001_1000,
     0b0001_1000,
@@ -588,7 +599,7 @@ pub const GLYPH_T_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_U_SMALL: [u8; 8] = [
+pub const GLYPH_U_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1000_0010,
     0b1000_0010,
@@ -598,7 +609,7 @@ pub const GLYPH_U_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_V_SMALL: [u8; 8] = [
+pub const GLYPH_V_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1000_0010,
     0b0100_0100,
@@ -608,7 +619,7 @@ pub const GLYPH_V_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_W_SMALL: [u8; 8] = [
+pub const GLYPH_W_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1000_0010,
     0b1001_1010,
@@ -618,7 +629,7 @@ pub const GLYPH_W_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_X_SMALL: [u8; 8] = [
+pub const GLYPH_X_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1000_0010,
     0b0100_0100,
@@ -628,7 +639,7 @@ pub const GLYPH_X_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Y_SMALL: [u8; 8] = [
+pub const GLYPH_Y_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1000_0010,
     0b0100_0100,
@@ -638,7 +649,7 @@ pub const GLYPH_Y_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_Z_SMALL: [u8; 8] = [
+pub const GLYPH_Z_SMALL: [u8; 16] = glyph8_to_16![
     0,
     0b1111_1110,
     0b0000_0100,
@@ -648,7 +659,7 @@ pub const GLYPH_Z_SMALL: [u8; 8] = [
     0,
     0,
 ];
-pub const GLYPH_0: [u8; 8] = [
+pub const GLYPH_0: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b1000_0001,
@@ -659,7 +670,7 @@ pub const GLYPH_0: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_1: [u8; 8] = [
+pub const GLYPH_1: [u8; 16] = glyph8_to_16![
     0b0001_1000,
     0b0010_1000,
     0b0000_1000,
@@ -670,7 +681,7 @@ pub const GLYPH_1: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_2: [u8; 8] = [
+pub const GLYPH_2: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b0000_0010,
@@ -681,7 +692,7 @@ pub const GLYPH_2: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_3: [u8; 8] = [
+pub const GLYPH_3: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b0000_0010,
@@ -692,7 +703,7 @@ pub const GLYPH_3: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_4: [u8; 8] = [
+pub const GLYPH_4: [u8; 16] = glyph8_to_16![
     0b0000_1100,
     0b0001_0100,
     0b0010_0100,
@@ -703,7 +714,7 @@ pub const GLYPH_4: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_5: [u8; 8] = [
+pub const GLYPH_5: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b0100_0000,
     0b0111_1100,
@@ -714,7 +725,7 @@ pub const GLYPH_5: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_6: [u8; 8] = [
+pub const GLYPH_6: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0000,
     0b0111_1100,
@@ -725,7 +736,7 @@ pub const GLYPH_6: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_7: [u8; 8] = [
+pub const GLYPH_7: [u8; 16] = glyph8_to_16![
     0b0111_1110,
     0b0000_0010,
     0b0000_0100,
@@ -736,7 +747,7 @@ pub const GLYPH_7: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_8: [u8; 8] = [
+pub const GLYPH_8: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b0100_0010,
@@ -747,7 +758,7 @@ pub const GLYPH_8: [u8; 8] = [
     0,
 ];
 
-pub const GLYPH_9: [u8; 8] = [
+pub const GLYPH_9: [u8; 16] = glyph8_to_16![
     0b0011_1100,
     0b0100_0010,
     0b0100_0010,
