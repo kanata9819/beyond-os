@@ -1,3 +1,6 @@
+#![no_std]
+#![no_main]
+
 #[derive(Clone, Copy)]
 pub struct MemRegion {
     pub start: u64,

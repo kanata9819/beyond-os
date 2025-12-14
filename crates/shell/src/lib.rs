@@ -4,15 +4,16 @@
 use console::console_trait::ConsoleOut;
 use core::arch::asm;
 use keyboard;
+use memory::{MemRegion, dump_memory_map};
 use meta::VERSION;
 
-pub struct Shell<C: ConsoleOut> {
+pub struct Shell<C: ConsoleOut + core::fmt::Write> {
     console: C,
     input_buffer: [u8; 128],
     length: usize,
 }
 
-impl<C: ConsoleOut> Shell<C> {
+impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
     pub fn new(console: C) -> Self {
         Self {
             console: console,
@@ -98,5 +99,12 @@ impl<C: ConsoleOut> Shell<C> {
                 }
             }
         };
+    }
+
+    pub fn show_memory_map<I>(&mut self, regions: I)
+    where
+        I: IntoIterator<Item = MemRegion>,
+    {
+        dump_memory_map(regions, &mut self.console);
     }
 }

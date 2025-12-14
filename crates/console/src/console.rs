@@ -4,7 +4,7 @@ use graphics::frame_buffer::BeyondFramebuffer;
 use graphics::{color::Color, graphics_trait::FrameBuffer, renderer::Renderer};
 use spin::{Mutex, Once};
 
-pub type KernelConsole = TextConsole<'static, graphics::frame_buffer::BeyondFramebuffer<'static>>;
+pub type KernelConsole = TextConsole<'static, BeyondFramebuffer<'static>>;
 
 static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
 const PIXEL: usize = 8;
@@ -22,9 +22,7 @@ pub struct TextConsole<'a, FB: FrameBuffer> {
 }
 
 pub fn init_console(fb: &'static mut BeyondFramebuffer<'static>) {
-    type ConsoleType = TextConsole<'static, BeyondFramebuffer<'static>>;
-
-    let console: ConsoleType = KernelConsole::new(fb, Color::white(), Color::black());
+    let console: KernelConsole = KernelConsole::new(fb, Color::white(), Color::black());
     CONSOLE.call_once(|| Mutex::new(console));
 }
 

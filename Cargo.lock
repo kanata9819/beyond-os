@@ -224,6 +224,7 @@ dependencies = [
  "console",
  "graphics",
  "keyboard",
+ "memory",
  "shell",
  "x86_64",
 ]
@@ -437,6 +438,7 @@ version = "0.1.0"
 dependencies = [
  "console",
  "keyboard",
+ "memory",
  "meta",
 ]
 

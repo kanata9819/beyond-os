@@ -1,6 +1,6 @@
 use crate::color::Color;
 use crate::graphics_trait::FrameBuffer;
-use bootloader_api::BootInfo;
+use bootloader_api::info;
 
 pub struct BeyondFramebuffer<'a> {
     pub buf: &'a mut [u8],
@@ -11,9 +11,8 @@ pub struct BeyondFramebuffer<'a> {
 }
 
 impl<'a> BeyondFramebuffer<'a> {
-    pub fn from_boot_info(boot_info: &'a mut BootInfo) -> Option<Self> {
-        let fb: &mut bootloader_api::info::FrameBuffer = boot_info.framebuffer.as_mut()?;
-        let info: bootloader_api::info::FrameBufferInfo = fb.info();
+    pub fn from_frame_buffer(fb: &'a mut info::FrameBuffer) -> Option<Self> {
+        let info: info::FrameBufferInfo = fb.info();
         let buffer: &mut [u8] = fb.buffer_mut();
 
         Some(Self {
