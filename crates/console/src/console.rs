@@ -160,10 +160,10 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
     }
 
     fn erase_cell(&mut self) {
-        let x0 = self.cursor_col * (8 + MARGIN_X);
-        let y0 = self.cursor_row * 24 + MARGIN_Y;
-        let char_w = 8 * 2; // glyph width * SCALE
-        let char_h = 8 * 2; // glyph height * SCALE
+        let x0: usize = self.cursor_col * (8 + MARGIN_X);
+        let y0: usize = self.cursor_row * 24 + MARGIN_Y;
+        let char_w: usize = 8 * 2;
+        let char_h: usize = 8 * 2;
         for y in 0..char_h {
             for x in 0..char_w {
                 self.fb.put_pixel(x0 + x, y0 + y, self.bg);
