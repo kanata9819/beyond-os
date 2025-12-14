@@ -22,7 +22,9 @@ pub struct TextConsole<'a, FB: FrameBuffer> {
 }
 
 pub fn init_console(fb: &'static mut BeyondFramebuffer<'static>) {
-    let console = KernelConsole::new(fb, Color::white(), Color::black());
+    type ConsoleType = TextConsole<'static, BeyondFramebuffer<'static>>;
+
+    let console: ConsoleType = KernelConsole::new(fb, Color::white(), Color::black());
     CONSOLE.call_once(|| Mutex::new(console));
 }
 
