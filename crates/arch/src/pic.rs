@@ -45,6 +45,6 @@ impl Pic8259Controller {
 static PIC8259_CONTROLLER: Once<Pic8259Controller> = Once::new();
 
 pub fn pic_controller() -> &'static (dyn InterruptController + Sync) {
-    PIC8259_CONTROLLER.call_once(|| Pic8259Controller::new());
+    PIC8259_CONTROLLER.call_once(Pic8259Controller::new);
     PIC8259_CONTROLLER.get().unwrap()
 }

@@ -21,6 +21,16 @@ pub struct KeyboardBuffer {
     tail: usize,
 }
 
+impl Default for KeyboardBuffer {
+    fn default() -> Self {
+        KeyboardBuffer {
+            buf: [0; KB_BUF_SIZE],
+            head: 0,
+            tail: 0,
+        }
+    }
+}
+
 impl KeyboardBuffer {
     pub const fn new() -> Self {
         Self {
@@ -65,6 +75,10 @@ unsafe fn inb(port: u16) -> u8 {
     }
 }
 
+/// # Safety
+/// どうすればsafety??
+///
+///
 pub unsafe fn read_scancode() -> Option<u8> {
     const KBD_STATUS_PORT: u16 = 0x64;
     const KBD_DATA_PORT: u16 = 0x60;

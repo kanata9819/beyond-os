@@ -3,7 +3,6 @@
 
 use console::console_trait::ConsoleOut;
 use core::arch::asm;
-use keyboard;
 use memory::{MemRegion, dump_memory_map};
 use meta::VERSION;
 
@@ -16,7 +15,7 @@ pub struct Shell<C: ConsoleOut + core::fmt::Write> {
 impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
     pub fn new(console: C) -> Self {
         Self {
-            console: console,
+            console,
             input_buffer: [0; 128],
             length: 0,
         }
@@ -28,31 +27,29 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
         self.console.write_charactor('>');
 
         loop {
-            if let Some(code) = keyboard::pop_scancode() {
-                if let Some(char) = keyboard::scancode_to_char(code) {
-                    match char {
-                        '\n' => {
-                            self.console.write_charactor('\n');
+            if let Some(code) = keyboard::pop_scancode()
+                && let Some(char) = keyboard::scancode_to_char(code)
+            {
+                match char {
+                    '\n' => {
+                        self.console.write_charactor('\n');
 
-                            if self.length != 0 {
-                                self.execute_line();
-                                // 入力バッファクリア
-                                self.length = 0;
-                            }
-                            // 次のプロンプト出すならここで
-                            self.console.write_charactor('>');
+                        if self.length != 0 {
+                            self.execute_line();
+                            // 入力バッファクリア
+                            self.length = 0;
                         }
-                        '\u{0008}' => {
-                            if self.length > 0 {
-                                if let Some(_) = self.pop_char() {
-                                    self.console.backspace();
-                                };
-                            }
-                        }
-                        _ => {
-                            self.console.write_charactor(char);
-                            self.push_char(char);
-                        }
+                        // 次のプロンプト出すならここで
+                        self.console.write_charactor('>');
+                    }
+                    '\u{0008}' => {
+                        if self.length > 0 && self.pop_char().is_some() {
+                            self.console.backspace();
+                        };
+                    }
+                    _ => {
+                        self.console.write_charactor(char);
+                        self.push_char(char);
                     }
                 }
             }
