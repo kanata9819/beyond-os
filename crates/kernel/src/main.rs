@@ -44,10 +44,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         }
     };
 }
-
 #[cfg(not(test))]
 use core::panic::PanicInfo;
-
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
