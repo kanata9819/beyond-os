@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
 
+mod frame;
+
+pub const PAGE_SIZE: u64 = 4096;
+
 #[derive(Clone, Copy)]
 pub struct MemRegion {
     pub start: u64,
@@ -15,13 +19,37 @@ pub enum MemRegionKind {
     Other,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Range {
+    pub start: u64,
+    pub end: u64, // [start, end)
+}
+
+impl Range {
+    pub fn contains(&self, addr: u64) -> bool {
+        self.start <= addr && addr < self.end
+    }
+}
+
+#[inline]
+pub fn align_up(x: u64, a: u64) -> u64 {
+    debug_assert!(a.is_power_of_two());
+    (x + a - 1) & !(a - 1)
+}
+
+#[inline]
+pub fn align_down(x: u64, a: u64) -> u64 {
+    debug_assert!(a.is_power_of_two());
+    x & !(a - 1)
+}
+
 pub fn dump_memory_map<I>(regions: I, console: &mut impl core::fmt::Write)
 where
     I: IntoIterator<Item = MemRegion>,
 {
     let mut usable_bytes: u64 = 0;
 
-    writeln!(console, "== memory map ==").unwrap();
+    writeln!(console, "== memory map ==").expect("Cannot Write!");
 
     for region in regions {
         let start: u64 = region.start;
