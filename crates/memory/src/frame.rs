@@ -1,4 +1,4 @@
-use crate::MemRegion;
+use crate::{align_down, align_up, MemRegion, PAGE_SIZE};
 
 pub trait FrameAllocator {
     fn alloc_frame(&mut self) -> Option<u64>; // 物理アドレス(4KiB aligned)
@@ -30,14 +30,26 @@ impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
                 // 次に確保するアドレスが、この region の範囲内か？
                 if self.next_addr < region.end {
                     let addr: u64 = self.next_addr;
-                    self.next_addr += 0x1000; // 4KiB
+                    self.next_addr += PAGE_SIZE;
 
                     return Some(addr);
                 }
             }
 
             // 今の region を使い切った or まだ無い → 次の region へ
-            let next: MemRegion = self.regions.next()?;
+            let mut next: MemRegion = self.regions.next()?;
+
+            // ページ境界に合わせる
+            let start: u64 = align_up(next.start, PAGE_SIZE);
+            let end: u64 = align_down(next.end, PAGE_SIZE);
+            if start >= end {
+                // ページ単位で使えない領域はスキップ
+                continue;
+            }
+
+            next.start = start;
+            next.end = end;
+
             self.next_addr = next.start;
             self.current = Some(next);
         }

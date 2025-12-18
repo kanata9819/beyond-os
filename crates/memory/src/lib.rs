@@ -51,7 +51,7 @@ pub fn alloc_frame<I: IntoIterator<Item = MemRegion>>(
 ) {
     let mut allocator = frame::BumpFrameAllocator::new(regions.into_iter());
     if let Some(f) = allocator.alloc_frame() {
-        writeln!(console, "alloc {}", f).unwrap();
+        writeln!(console, "alloc {:#x}", f).unwrap();
     }
 }
 
