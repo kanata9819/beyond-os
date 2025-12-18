@@ -9,6 +9,8 @@ use graphics::{
 use spin::{Mutex, Once};
 
 pub type KernelConsole = TextConsole<'static, BeyondFramebuffer<'static>>;
+/// Handle to the globally-initialized console (locks internally on each write).
+pub struct GlobalConsole;
 
 static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
 const GLYPH_W: usize = 8;
@@ -39,6 +41,17 @@ pub fn _print(args: core::fmt::Arguments) {
         let mut locked = console.lock();
         locked.write_fmt(args).unwrap();
     }
+}
+
+fn with_console<R>(f: impl FnOnce(&mut KernelConsole) -> R) -> Option<R> {
+    CONSOLE.get().map(|c| {
+        let mut guard = c.lock();
+        f(&mut *guard)
+    })
+}
+
+pub fn global_console() -> Option<GlobalConsole> {
+    CONSOLE.get().map(|_| GlobalConsole)
 }
 
 impl<'a, FB: FrameBuffer> Write for TextConsole<'a, FB> {
@@ -170,5 +183,50 @@ impl<'a, FB: FrameBuffer> ConsoleOut for TextConsole<'a, FB> {
                 self.fb.put_pixel(x0 + x, y0 + y, self.bg);
             }
         }
+    }
+}
+
+impl Write for GlobalConsole {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        let _ = with_console(|c| c.write_str(s)).ok_or(core::fmt::Error); // propagate missing console as error
+        Ok(())
+    }
+}
+
+impl ConsoleOut for GlobalConsole {
+    fn write_string(&mut self, s: &str) {
+        let _ = with_console(|c| c.write_string(s));
+    }
+
+    fn write_line(&mut self, s: &str) {
+        let _ = with_console(|c| c.write_line(s));
+    }
+
+    fn clear(&mut self) {
+        let _ = with_console(|c| c.clear());
+    }
+
+    fn write_charactor(&mut self, ch: char) {
+        let _ = with_console(|c| c.write_charactor(ch));
+    }
+
+    fn write_charactor_at(&mut self, ch: char) {
+        let _ = with_console(|c| c.write_charactor_at(ch));
+    }
+
+    fn backspace(&mut self) {
+        let _ = with_console(|c| c.backspace());
+    }
+
+    fn newline(&mut self) {
+        let _ = with_console(|c| c.newline());
+    }
+
+    fn scroll_up(&mut self) {
+        let _ = with_console(|c| c.scroll_up());
+    }
+
+    fn erase_cell(&mut self) {
+        let _ = with_console(|c| c.erase_cell());
     }
 }

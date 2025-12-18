@@ -7,14 +7,14 @@ mod frame;
 
 pub const PAGE_SIZE: u64 = 4096;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct MemRegion {
     pub start: u64,
     pub end: u64,
     pub kind: MemRegionKind,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MemRegionKind {
     Usable,
     Reserved,

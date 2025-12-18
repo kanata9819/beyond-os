@@ -1,4 +1,6 @@
-use crate::{align_down, align_up, MemRegion, PAGE_SIZE};
+use console::print;
+
+use crate::{MemRegion, PAGE_SIZE, align_down, align_up};
 
 pub trait FrameAllocator {
     fn alloc_frame(&mut self) -> Option<u64>; // 物理アドレス(4KiB aligned)
@@ -38,6 +40,7 @@ impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
 
             // 今の region を使い切った or まだ無い → 次の region へ
             let mut next: MemRegion = self.regions.next()?;
+            print!("nextをプリントした {:?}", next);
 
             // ページ境界に合わせる
             let start: u64 = align_up(next.start, PAGE_SIZE);
