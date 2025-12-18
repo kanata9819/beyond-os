@@ -3,7 +3,7 @@
 
 use console::console_trait::ConsoleOut;
 use core::arch::asm;
-use memory::{MemRegion, dump_memory_map};
+use memory::MemRegion;
 use meta::VERSION;
 
 pub struct Shell<C: ConsoleOut + core::fmt::Write> {
@@ -102,6 +102,10 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
     where
         I: IntoIterator<Item = MemRegion>,
     {
-        dump_memory_map(regions, &mut self.console);
+        memory::dump_memory_map(regions, &mut self.console);
+    }
+
+    pub fn alloc<I: IntoIterator<Item = MemRegion>>(&mut self, regions: I) {
+        memory::alloc_frame(regions, &mut self.console);
     }
 }

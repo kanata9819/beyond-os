@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use crate::frame::FrameAllocator;
+
 mod frame;
 
 pub const PAGE_SIZE: u64 = 4096;
@@ -22,7 +24,7 @@ pub enum MemRegionKind {
 #[derive(Clone, Copy, Debug)]
 pub struct Range {
     pub start: u64,
-    pub end: u64, // [start, end)
+    pub end: u64,
 }
 
 impl Range {
@@ -43,6 +45,17 @@ pub fn align_down(x: u64, a: u64) -> u64 {
     x & !(a - 1)
 }
 
+pub fn alloc_frame<I: IntoIterator<Item = MemRegion>>(
+    regions: I,
+    console: &mut impl core::fmt::Write,
+) {
+    let mut allocator = frame::BumpFrameAllocator::new(regions.into_iter());
+    if let Some(f) = allocator.alloc_frame() {
+        writeln!(console, "alloc {}", f).unwrap();
+    }
+}
+
+///Output Memory Map
 pub fn dump_memory_map<I>(regions: I, console: &mut impl core::fmt::Write)
 where
     I: IntoIterator<Item = MemRegion>,
