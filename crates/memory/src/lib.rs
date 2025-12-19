@@ -8,6 +8,8 @@ mod heap;
 
 pub const PAGE_SIZE: u64 = 4096;
 
+pub use heap::init_heap;
+
 #[derive(Debug, Clone, Copy)]
 pub struct MemRegion {
     pub start: u64,
@@ -36,6 +38,12 @@ impl Range {
 
 #[inline]
 pub fn align_up(x: u64, a: u64) -> u64 {
+    debug_assert!(a.is_power_of_two());
+    (x + a - 1) & !(a - 1)
+}
+
+#[inline]
+pub fn align_up_usize(x: usize, a: usize) -> usize {
     debug_assert!(a.is_power_of_two());
     (x + a - 1) & !(a - 1)
 }

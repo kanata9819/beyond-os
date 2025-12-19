@@ -30,6 +30,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
+            memory::init_heap();
 
             let converted = regions.iter().map(|region| MemRegion {
                 start: region.start,
