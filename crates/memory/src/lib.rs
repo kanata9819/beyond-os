@@ -4,6 +4,7 @@
 use crate::frame::FrameAllocator;
 
 mod frame;
+mod heap;
 
 pub const PAGE_SIZE: u64 = 4096;
 

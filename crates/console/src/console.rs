@@ -9,7 +9,7 @@ use graphics::{
 use spin::{Mutex, Once};
 
 pub type KernelConsole = TextConsole<'static, BeyondFramebuffer<'static>>;
-/// Handle to the globally-initialized console (locks internally on each write).
+
 pub struct GlobalConsole;
 
 static CONSOLE: Once<Mutex<KernelConsole>> = Once::new();
@@ -46,7 +46,7 @@ pub fn _print(args: core::fmt::Arguments) {
 fn with_console<R>(f: impl FnOnce(&mut KernelConsole) -> R) -> Option<R> {
     CONSOLE.get().map(|c| {
         let mut guard = c.lock();
-        f(&mut *guard)
+        f(&mut guard)
     })
 }
 
