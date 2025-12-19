@@ -56,7 +56,5 @@ unsafe impl GlobalAlloc for BumpAllocator {
         }
     }
 
-    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
-        // Bump allocator does not support freeing.
-    }
+    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {}
 }
