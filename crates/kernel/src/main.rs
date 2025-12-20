@@ -1,12 +1,16 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use alloc::{boxed::Box, vec::Vec};
 use arch::{idt, interrupts};
 use bootloader_api::{
     BootInfo, entry_point,
     info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions},
 };
-use console::{console::TextConsole, console_trait::Console};
+use console::{console::TextConsole, console_trait::Console, serial};
+use core::fmt::Write;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind};
 use shell::Shell;
@@ -23,8 +27,18 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     match BeyondFramebuffer::from_frame_buffer(frame_buffer) {
         Some(mut frame_buffer) => {
-            let console: TextConsole<'_, BeyondFramebuffer<'_>> =
+            let mut console: TextConsole<'_, BeyondFramebuffer<'_>> =
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black());
+
+            serial::init_serial();
+            console::serial_println!("serial online");
+
+            let boxed: Box<u64> = Box::new(1234);
+            let mut v: Vec<u64> = Vec::new();
+            v.push(10);
+            v.push(20);
+            writeln!(console, "heap demo: boxed={}, vec={:?}", *boxed, v).ok();
+
             let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
 
             idt::init_idt();

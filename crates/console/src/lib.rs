@@ -5,3 +5,4 @@
 pub mod console;
 pub mod console_trait;
 pub mod macros;
+pub mod serial;
