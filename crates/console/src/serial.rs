@@ -1,4 +1,4 @@
-use core::fmt::Write;
+use core::{arch::asm, fmt::Write};
 use spin::{Mutex, Once};
 
 /// Base I/O port address for COM1.
@@ -83,7 +83,7 @@ pub fn _print(args: core::fmt::Arguments) {
 /// sends the byte to the hardware device mapped at that I/O port.
 fn outb(port: u16, value: u8) {
     unsafe {
-        core::arch::asm!(
+        asm!(
             "out dx, al",
             in("dx") port,
             in("al") value,
@@ -100,7 +100,7 @@ fn outb(port: u16, value: u8) {
 fn inb(port: u16) -> u8 {
     let value: u8;
     unsafe {
-        core::arch::asm!(
+        asm!(
             "in al, dx",
             in("dx") port,
             out("al") value,
