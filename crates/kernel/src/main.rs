@@ -32,6 +32,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
             serial::init_serial();
             console::serial_println!("serial online");
+            memory::init_heap();
 
             let boxed: Box<u64> = Box::new(1234);
             let mut v: Vec<u64> = Vec::new();
@@ -44,7 +45,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
-            memory::init_heap();
 
             let converted = regions.iter().map(|region| MemRegion {
                 start: region.start,
