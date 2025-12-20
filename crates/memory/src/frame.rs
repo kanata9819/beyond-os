@@ -1,9 +1,15 @@
 use crate::{MemRegion, PAGE_SIZE, align_down, align_up};
 
+/// Physical frame allocator interface.
 pub trait FrameAllocator {
+    /// Allocate one 4 KiB aligned physical frame.
+    ///
+    /// Returns the starting physical address on success, or `None` if no
+    /// usable frame is available.
     fn alloc_frame(&mut self) -> Option<u64>; // 物理アドレス(4KiB aligned)
 }
 
+/// Simple bump allocator over usable memory regions.
 pub struct BumpFrameAllocator<I>
 where
     I: Iterator<Item = MemRegion>,
@@ -14,6 +20,7 @@ where
 }
 
 impl<I: Iterator<Item = MemRegion>> BumpFrameAllocator<I> {
+    /// Create a bump allocator from an iterator of memory regions.
     pub fn new(regions: I) -> Self {
         Self {
             regions,

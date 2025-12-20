@@ -6,10 +6,13 @@ use crate::frame::FrameAllocator;
 mod frame;
 mod heap;
 
+/// 4 KiB page size used by the memory subsystem.
 pub const PAGE_SIZE: u64 = 4096;
 
+/// Initialize the global heap allocator backing store.
 pub use heap::init_heap;
 
+/// Memory region description provided by the bootloader.
 #[derive(Debug, Clone, Copy)]
 pub struct MemRegion {
     pub start: u64,
@@ -17,6 +20,7 @@ pub struct MemRegion {
     pub kind: MemRegionKind,
 }
 
+/// Memory region classification used by the kernel.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MemRegionKind {
     Usable,
@@ -24,6 +28,7 @@ pub enum MemRegionKind {
     Other,
 }
 
+/// Generic address range [start, end) used for range checks.
 #[derive(Clone, Copy, Debug)]
 pub struct Range {
     pub start: u64,
@@ -31,40 +36,44 @@ pub struct Range {
 }
 
 impl Range {
+    /// Returns true if `addr` is inside this range.
     pub fn contains(&self, addr: u64) -> bool {
         self.start <= addr && addr < self.end
     }
 }
 
 #[inline]
+/// Align `x` up to the next multiple of `a` (power of two).
 pub fn align_up(x: u64, a: u64) -> u64 {
     debug_assert!(a.is_power_of_two());
     (x + a - 1) & !(a - 1)
 }
 
 #[inline]
+/// Align `x` up to the next multiple of `a` (power of two), usize variant.
 pub fn align_up_usize(x: usize, a: usize) -> usize {
     debug_assert!(a.is_power_of_two());
     (x + a - 1) & !(a - 1)
 }
 
 #[inline]
+/// Align `x` down to the previous multiple of `a` (power of two).
 pub fn align_down(x: u64, a: u64) -> u64 {
     debug_assert!(a.is_power_of_two());
     x & !(a - 1)
 }
 
+#[allow(unused_variables)]
+/// Allocate one physical frame from the provided memory regions.
 pub fn alloc_frame<I: IntoIterator<Item = MemRegion>>(
     regions: I,
     console: &mut impl core::fmt::Write,
 ) {
     let mut allocator = frame::BumpFrameAllocator::new(regions.into_iter());
-    if let Some(f) = allocator.alloc_frame() {
-        writeln!(console, "alloc {:#x}", f).unwrap();
-    }
+    allocator.alloc_frame();
 }
 
-///Output Memory Map
+/// Dump the bootloader memory map to the provided console.
 pub fn dump_memory_map<I>(regions: I, console: &mut impl core::fmt::Write)
 where
     I: IntoIterator<Item = MemRegion>,

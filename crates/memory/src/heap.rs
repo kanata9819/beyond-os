@@ -2,21 +2,27 @@ use core::alloc::{GlobalAlloc, Layout};
 use core::ptr::{addr_of_mut, null_mut};
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+/// Fixed heap size used by the bump allocator.
 const HEAP_SIZE: usize = 1024 * 1024; // 1 MiB
 
+/// Global allocator instance used by `alloc` types like Box/Vec.
 #[global_allocator]
 static GLOBAL_ALLOCATOR: BumpAllocator = BumpAllocator;
 
+/// Heap start address (set by `init_heap`).
 static HEAP_START: AtomicUsize = AtomicUsize::new(0);
+/// Heap end address (set by `init_heap`).
 static HEAP_END: AtomicUsize = AtomicUsize::new(0);
+/// Next allocation pointer (bump cursor).
 static NEXT: AtomicUsize = AtomicUsize::new(0);
 
+/// Simple bump allocator with no deallocation.
 struct BumpAllocator;
 
-/// # Safety
-/// This is the static heap backing store for the global allocator.
+/// Static heap backing store for the global allocator.
 static mut HEAP: [u8; HEAP_SIZE] = [0; HEAP_SIZE];
 
+/// Initialize the heap range used by the global allocator.
 pub fn init_heap() {
     let start: usize = addr_of_mut!(HEAP) as *mut u8 as usize;
     let end: usize = start + HEAP_SIZE;
