@@ -8,3 +8,4 @@ pic8259 = "0.11.0"
 spin = "0.10.0"
 x86_64 = "0.15.4"
 keyboard = { path = "../drivers/keyboard" }
+console = { path = "../console" }
