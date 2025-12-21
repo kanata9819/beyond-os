@@ -1,20 +1,27 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use alloc::vec::Vec;
 use console::console_trait::ConsoleOut;
 use core::arch::asm;
 use memory::MemRegion;
 use meta::VERSION;
 
+pub mod mem;
+
 pub struct Shell<C: ConsoleOut + core::fmt::Write> {
+    regions: Vec<MemRegion>,
     console: C,
     input_buffer: [u8; 128],
     length: usize,
 }
 
 impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
-    pub fn new(console: C) -> Self {
+    pub fn new(console: C, regions: Vec<MemRegion>) -> Self {
         Self {
+            regions,
             console,
             input_buffer: [0; 128],
             length: 0,
@@ -91,21 +98,16 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                     self.console.write_string(VERSION);
                     self.console.write_charactor('\n');
                 }
+                "showmem" => {
+                    mem::show_memory_map(&mut self.console, self.regions.iter().copied());
+                }
+                "alloc" => {
+                    mem::alloc_frame(&mut self.console, self.regions.iter().copied());
+                }
                 _ => {
                     self.console.write_string("unknown command\n");
                 }
             }
         };
-    }
-
-    pub fn show_memory_map<I>(&mut self, regions: I)
-    where
-        I: IntoIterator<Item = MemRegion>,
-    {
-        memory::dump_memory_map(regions, &mut self.console);
-    }
-
-    pub fn alloc<I: IntoIterator<Item = MemRegion>>(&mut self, regions: I) {
-        memory::alloc_frame(regions, &mut self.console);
     }
 }
