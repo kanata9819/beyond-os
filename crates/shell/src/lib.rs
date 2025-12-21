@@ -98,7 +98,7 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                     self.console.write_string(VERSION);
                     self.console.write_charactor('\n');
                 }
-                "showmem" => {
+                "mem" => {
                     mem::show_memory_map(&mut self.console, self.regions.iter().copied());
                 }
                 "alloc" => {

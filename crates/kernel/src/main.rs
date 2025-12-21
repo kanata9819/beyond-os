@@ -15,7 +15,7 @@ use bootloader_api::{
 use console::{console::TextConsole, console_trait::Console, serial};
 // use core::fmt::Write;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
-use memory::{MemRegion, MemRegionKind};
+use memory::{MemRegion, MemRegionKind, paging};
 use shell::Shell;
 use x86_64::{VirtAddr, instructions::interrupts as cpu_int};
 
@@ -40,8 +40,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
-            let regions_vec: Vec<MemRegion> = convert_regions(regions);
 
+            let regions_vec: Vec<MemRegion> = convert_regions(regions);
             init_heap(boot_info.physical_memory_offset, &regions_vec);
 
             Shell::new(
@@ -58,10 +58,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
 fn init_heap(phys_offset: Optional<u64>, regions_vec: &Vec<MemRegion>) {
     if let Some(offset) = phys_offset.into_option() {
-        let phys_offset: VirtAddr = VirtAddr::new(offset);
-        let mut mapper = unsafe { memory::paging::init(phys_offset) };
-        let mut frame_allocator =
-            memory::paging::BootInfoFrameAllocator::new(regions_vec.iter().copied());
+        let mut mapper = unsafe { paging::init(VirtAddr::new(offset)) };
+        let mut frame_allocator = paging::BootInfoFrameAllocator::new(regions_vec.iter().copied());
 
         if let Err(e) = memory::init_heap(&mut mapper, &mut frame_allocator) {
             console::serial_println!("heap init failed: {:?}", e);
@@ -80,8 +78,7 @@ fn convert_regions(regions: &MemoryRegions) -> Vec<MemRegion> {
         },
     });
 
-    let regions_vec: Vec<MemRegion> = converted.clone().collect();
-    regions_vec
+    converted.clone().collect()
 }
 
 #[cfg(not(test))]
