@@ -30,7 +30,7 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
 
     pub fn run_shell(&mut self) -> ! {
         self.console
-            .write_line("Beyond OS v0.0.1 Author: Takahiro Nakamura\n");
+            .write_line("Beyond OS v0.1.0 Author: Takahiro Nakamura\n");
         self.console.write_charactor('>');
 
         loop {

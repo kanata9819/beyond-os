@@ -13,7 +13,6 @@ use bootloader_api::{
     info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions, Optional},
 };
 use console::{console::TextConsole, console_trait::Console, serial};
-// use core::fmt::Write;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind, paging};
 use shell::Shell;
@@ -56,7 +55,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     };
 }
 
-fn init_heap(phys_offset: Optional<u64>, regions_vec: &Vec<MemRegion>) {
+fn init_heap(phys_offset: Optional<u64>, regions_vec: &[MemRegion]) {
     if let Some(offset) = phys_offset.into_option() {
         let mut mapper = unsafe { paging::init(VirtAddr::new(offset)) };
         let mut frame_allocator = paging::BootInfoFrameAllocator::new(regions_vec.iter().copied());
