@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
 
 extern crate alloc;
 
@@ -31,7 +32,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black());
 
             serial::init_serial();
-            console::serial_println!("serial online");
             memory::init_heap();
 
             let boxed: Box<u64> = Box::new(1234);
@@ -71,5 +71,18 @@ use core::panic::PanicInfo;
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     console::serial_println!("panic: {}", _info);
+    loop {}
+}
+
+#[cfg(not(test))]
+use core::alloc::Layout;
+#[cfg(not(test))]
+#[alloc_error_handler]
+fn alloc_error(layout: Layout) -> ! {
+    console::serial_println!(
+        "alloc_error: size={} align={}",
+        layout.size(),
+        layout.align()
+    );
     loop {}
 }
