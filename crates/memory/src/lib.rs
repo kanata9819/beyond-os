@@ -11,7 +11,7 @@ pub mod paging;
 pub const PAGE_SIZE: u64 = 4096;
 
 /// Initialize the global heap allocator backing store.
-pub use heap::init_heap;
+pub use heap::{HEAP_INITIAL_SIZE, HEAP_VIRT_START, grow_heap, init_heap};
 
 /// Memory region description provided by the bootloader.
 #[derive(Debug, Clone, Copy)]

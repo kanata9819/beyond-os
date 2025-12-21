@@ -17,11 +17,7 @@ use core::fmt::Write;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind};
 use shell::Shell;
-use x86_64::{
-    VirtAddr,
-    instructions::interrupts as cpu_int,
-    structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags},
-};
+use x86_64::{VirtAddr, instructions::interrupts as cpu_int};
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
     let mut config = BootloaderConfig::new_default();
@@ -44,16 +40,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black());
 
             serial::init_serial();
-            memory::init_heap();
-
-            let boxed: Box<u64> = Box::new(1234);
-            let mut v: Vec<u64> = Vec::new();
-            v.push(10);
-            v.push(20);
-            writeln!(console, "heap demo: boxed={}, vec={:?}", *boxed, v).ok();
-
-            let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
-
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
@@ -77,24 +63,18 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             let mut frame_allocator =
                 memory::paging::BootInfoFrameAllocator::new(converted.clone());
 
-            let page = Page::containing_address(VirtAddr::new(0x_4444_4444_0000));
-            let frame = frame_allocator
-                .allocate_frame()
-                .expect("no usable frame available");
-            let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-            let map_result = unsafe { mapper.map_to(page, frame, flags, &mut frame_allocator) };
-
-            match map_result {
-                Ok(flush) => {
-                    flush.flush();
-                    let ptr: *mut u64 = page.start_address().as_mut_ptr();
-                    unsafe { ptr.write_volatile(0x_f021_f077_f065_f04e) };
-                    console::serial_println!("paging demo: mapped and wrote test value");
-                }
-                Err(e) => {
-                    console::serial_println!("paging demo: map_to failed: {:?}", e);
-                }
+            if let Err(e) = memory::init_heap(&mut mapper, &mut frame_allocator) {
+                console::serial_println!("heap init failed: {:?}", e);
+                panic!("heap init failed");
             }
+
+            let boxed: Box<u64> = Box::new(1234);
+            let mut v: Vec<u64> = Vec::new();
+            v.push(10);
+            v.push(20);
+            writeln!(console, "heap demo: boxed={}, vec={:?}", *boxed, v).ok();
+
+            let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
 
             shell.show_memory_map(converted.clone());
             shell.alloc(converted);
