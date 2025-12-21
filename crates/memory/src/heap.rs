@@ -65,6 +65,7 @@ pub fn grow_heap(
 unsafe impl GlobalAlloc for BumpAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let start: usize = HEAP_START.load(Ordering::Acquire);
+
         if start == 0 {
             return null_mut();
         }
@@ -106,6 +107,7 @@ fn map_heap_range(
         .checked_add(size)
         .ok_or(MapToError::FrameAllocationFailed)?;
     let end = crate::align_up_usize(end_unaligned, crate::PAGE_SIZE as usize);
+
     if start >= end {
         return Ok(());
     }

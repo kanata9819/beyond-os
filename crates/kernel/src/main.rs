@@ -4,6 +4,7 @@
 
 extern crate alloc;
 
+use alloc::vec;
 use alloc::{boxed::Box, vec::Vec};
 use arch::{idt, interrupts};
 use bootloader_api::{
@@ -69,9 +70,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             }
 
             let boxed: Box<u64> = Box::new(1234);
-            let mut v: Vec<u64> = Vec::new();
-            v.push(10);
-            v.push(20);
+            let v: Vec<u64> = vec![10, 20];
+
             writeln!(console, "heap demo: boxed={}, vec={:?}", *boxed, v).ok();
 
             let mut shell: Shell<TextConsole<'_, BeyondFramebuffer<'_>>> = Shell::new(console);
@@ -105,5 +105,5 @@ fn alloc_error(layout: Layout) -> ! {
         layout.size(),
         layout.align()
     );
-    loop {}
+    panic!()
 }

@@ -50,7 +50,7 @@ impl<I: Iterator<Item = MemRegion>> BootInfoFrameAllocator<I> {
     }
 
     fn next_usable_region(&mut self) -> Option<MemRegion> {
-        while let Some(mut region) = self.regions.next() {
+        for mut region in self.regions.by_ref() {
             if region.kind != MemRegionKind::Usable {
                 continue;
             }
@@ -72,13 +72,13 @@ impl<I: Iterator<Item = MemRegion>> BootInfoFrameAllocator<I> {
 unsafe impl<I: Iterator<Item = MemRegion>> FrameAllocator<Size4KiB> for BootInfoFrameAllocator<I> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
         loop {
-            if let Some(region) = &self.current {
-                if self.next_addr < region.end {
-                    let addr = self.next_addr;
-                    self.next_addr += PAGE_SIZE;
-                    let phys = PhysAddr::new(addr);
-                    return Some(PhysFrame::containing_address(phys));
-                }
+            if let Some(region) = &self.current
+                && self.next_addr < region.end
+            {
+                let addr = self.next_addr;
+                self.next_addr += PAGE_SIZE;
+                let phys = PhysAddr::new(addr);
+                return Some(PhysFrame::containing_address(phys));
             }
 
             let next = self.next_usable_region()?;

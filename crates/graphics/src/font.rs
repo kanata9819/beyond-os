@@ -1,8 +1,8 @@
-// Expand 8-row glyphs to 16-row format with a top blank row and bottom padding.
+// Expand 8-row glyphs to 16 rows by duplicating each row for better legibility.
 macro_rules! glyph8_to_16 {
     ($l0:expr, $l1:expr, $l2:expr, $l3:expr, $l4:expr, $l5:expr, $l6:expr, $l7:expr $(,)?) => {
         [
-            0, $l0, $l1, $l2, $l3, $l4, $l5, $l6, $l7, 0, 0, 0, 0, 0, 0, 0,
+            $l0, $l0, $l1, $l1, $l2, $l2, $l3, $l3, $l4, $l4, $l5, $l5, $l6, $l6, $l7, $l7,
         ]
     };
 }
