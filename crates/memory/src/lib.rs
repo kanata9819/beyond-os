@@ -5,6 +5,7 @@ use crate::frame::FrameAllocator;
 
 mod frame;
 mod heap;
+pub mod paging;
 
 /// 4 KiB page size used by the memory subsystem.
 pub const PAGE_SIZE: u64 = 4096;

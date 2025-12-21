@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 console = { path = "../console" }
+x86_64 = "0.15.4"

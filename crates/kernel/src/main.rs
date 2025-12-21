@@ -7,7 +7,9 @@ extern crate alloc;
 use alloc::{boxed::Box, vec::Vec};
 use arch::{idt, interrupts};
 use bootloader_api::{
-    BootInfo, entry_point,
+    BootInfo, BootloaderConfig,
+    config::Mapping,
+    entry_point,
     info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions},
 };
 use console::{console::TextConsole, console_trait::Console, serial};
@@ -15,9 +17,19 @@ use core::fmt::Write;
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind};
 use shell::Shell;
-use x86_64::instructions::interrupts as cpu_int;
+use x86_64::{
+    VirtAddr,
+    instructions::interrupts as cpu_int,
+    structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags},
+};
 
-entry_point!(kernel_main);
+pub static BOOTLOADER_CONFIG: BootloaderConfig = {
+    let mut config = BootloaderConfig::new_default();
+    config.mappings.physical_memory = Some(Mapping::Dynamic);
+    config
+};
+
+entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 
 /// entry_point of BeyondOS
 /// recieve Memory Regions and FrameBuffer from bootloader_api.
@@ -46,6 +58,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             interrupts::init_interrupts();
             cpu_int::enable();
 
+            let phys_offset = boot_info
+                .physical_memory_offset
+                .into_option()
+                .expect("physical memory offset not provided");
+            let phys_offset = VirtAddr::new(phys_offset);
+            let mut mapper = unsafe { memory::paging::init(phys_offset) };
+
             let converted = regions.iter().map(|region| MemRegion {
                 start: region.start,
                 end: region.end,
@@ -54,6 +73,28 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                     _ => MemRegionKind::Reserved,
                 },
             });
+
+            let mut frame_allocator =
+                memory::paging::BootInfoFrameAllocator::new(converted.clone());
+
+            let page = Page::containing_address(VirtAddr::new(0x_4444_4444_0000));
+            let frame = frame_allocator
+                .allocate_frame()
+                .expect("no usable frame available");
+            let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+            let map_result = unsafe { mapper.map_to(page, frame, flags, &mut frame_allocator) };
+
+            match map_result {
+                Ok(flush) => {
+                    flush.flush();
+                    let ptr: *mut u64 = page.start_address().as_mut_ptr();
+                    unsafe { ptr.write_volatile(0x_f021_f077_f065_f04e) };
+                    console::serial_println!("paging demo: mapped and wrote test value");
+                }
+                Err(e) => {
+                    console::serial_println!("paging demo: map_to failed: {:?}", e);
+                }
+            }
 
             shell.show_memory_map(converted.clone());
             shell.alloc(converted);

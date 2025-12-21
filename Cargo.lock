@@ -294,6 +294,7 @@ name = "memory"
 version = "0.1.0"
 dependencies = [
  "console",
+ "x86_64",
 ]
 
 [[package]]
