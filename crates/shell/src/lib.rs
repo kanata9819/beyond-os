@@ -43,10 +43,8 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
 
                         if self.length != 0 {
                             self.execute_line();
-                            // 入力バッファクリア
                             self.length = 0;
                         }
-                        // 次のプロンプト出すならここで
                         self.console.write_charactor('>');
                     }
                     '\u{0008}' => {

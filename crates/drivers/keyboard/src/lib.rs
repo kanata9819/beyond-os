@@ -40,12 +40,12 @@ impl KeyboardBuffer {
         }
     }
 
-    fn push(&mut self, scancode: u8) {
-        let next_head: usize = (self.head + 1) % KB_BUF_SIZE;
+    fn push(&mut self, code: u8) {
+        let next: usize = (self.head + 1) % KB_BUF_SIZE;
         // 一杯のときは上書き or 無視、好きな方で
-        if next_head != self.tail {
-            self.buf[self.head] = scancode;
-            self.head = next_head;
+        if next != self.tail {
+            self.buf[self.head] = code;
+            self.head = next;
         }
     }
 

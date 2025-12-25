@@ -40,12 +40,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             interrupts::init_interrupts();
             cpu_int::enable();
 
-            let regions_vec: Vec<MemRegion> = convert_regions(regions);
-            init_heap(boot_info.physical_memory_offset, &regions_vec);
+            init_heap(boot_info.physical_memory_offset, regions);
 
             Shell::new(
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black()),
-                regions_vec,
+                convert_regions(regions),
             )
             .run_shell();
         }
@@ -55,10 +54,20 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     };
 }
 
-fn init_heap(phys_offset: Optional<u64>, regions_vec: &[MemRegion]) {
+fn init_heap(phys_offset: Optional<u64>, regions: &MemoryRegions) {
     if let Some(offset) = phys_offset.into_option() {
         let mut mapper = unsafe { paging::init(VirtAddr::new(offset)) };
-        let mut frame_allocator = paging::BootInfoFrameAllocator::new(regions_vec.iter().copied());
+
+        let iter = regions.iter().map(|region| MemRegion {
+            start: region.start,
+            end: region.end,
+            kind: match region.kind {
+                BlKind::Usable => MemRegionKind::Usable,
+                _ => MemRegionKind::Reserved,
+            },
+        });
+
+        let mut frame_allocator = paging::BootInfoFrameAllocator::new(iter);
 
         if let Err(e) = memory::init_heap(&mut mapper, &mut frame_allocator) {
             console::serial_println!("heap init failed: {:?}", e);
@@ -77,7 +86,7 @@ fn convert_regions(regions: &MemoryRegions) -> Vec<MemRegion> {
         },
     });
 
-    converted.clone().collect()
+    converted.collect()
 }
 
 #[cfg(not(test))]
