@@ -69,9 +69,9 @@ pub fn align_down(x: u64, a: u64) -> u64 {
 pub fn alloc_frame<I: IntoIterator<Item = MemRegion>>(
     regions: I,
     console: &mut impl core::fmt::Write,
-) {
+) -> Option<u64> {
     let mut allocator = frame::BumpFrameAllocator::new(regions.into_iter());
-    allocator.alloc_frame();
+    allocator.alloc_frame()
 }
 
 /// Dump the bootloader memory map to the provided console.

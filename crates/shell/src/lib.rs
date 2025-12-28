@@ -29,8 +29,7 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
     }
 
     pub fn run_shell(&mut self) -> ! {
-        self.console
-            .write_line("Beyond OS v0.1.0 Author: Takahiro Nakamura\n");
+        writeln!(self.console, "Beyond OS v0.1.0 Author: Takahiro Nakamura").unwrap();
         self.console.write_charactor('>');
 
         loop {
@@ -86,24 +85,31 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
         if let Ok(line) = str::from_utf8(bytes) {
             match line {
                 "hello" => {
-                    self.console.write_string("welcome to BeyondOS\n");
+                    writeln!(self.console, "welcome to BeyondOS\n").unwrap();
                 }
                 "help" => {
-                    self.console.write_string("Show Help\n");
-                    self.console.write_string("put hello to greet to OS\n");
+                    writeln!(self.console, "Show Help\n").unwrap();
+                    writeln!(self.console, "hello: to greet to OS\n").unwrap();
+                    writeln!(self.console, "version: to show version of Beyond OS\n").unwrap();
+                    writeln!(self.console, "mem: to show memory map\n").unwrap();
+                    writeln!(
+                        self.console,
+                        "alloctest: to test allocator and show next adderess\n"
+                    )
+                    .unwrap();
                 }
                 "version" => {
-                    self.console.write_string(VERSION);
-                    self.console.write_charactor('\n');
+                    writeln!(self.console, "{}", VERSION).unwrap();
                 }
                 "mem" => {
                     mem::show_memory_map(&mut self.console, self.regions.iter().copied());
                 }
-                "alloc" => {
-                    mem::alloc_frame(&mut self.console, self.regions.iter().copied());
+                "alloctest" => {
+                    let addr = mem::alloc_frame(&mut self.console, self.regions.iter().copied());
+                    writeln!(self.console, "{}", addr.unwrap()).unwrap();
                 }
                 _ => {
-                    self.console.write_string("unknown command\n");
+                    writeln!(self.console, "unknown command: {}", line).unwrap();
                 }
             }
         };
