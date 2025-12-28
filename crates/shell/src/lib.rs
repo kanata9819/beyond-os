@@ -11,6 +11,16 @@ use meta::VERSION;
 
 pub mod mem;
 
+pub struct ShellCommands;
+impl ShellCommands {
+    pub fn enter() -> char {
+        '\n'
+    }
+    pub fn backspace() -> char {
+        '\u{0008}'
+    }
+}
+
 pub struct Shell<C: ConsoleOut + core::fmt::Write> {
     regions: Vec<MemRegion>,
     console: C,
@@ -36,25 +46,21 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
             if let Some(code) = keyboard::pop_scancode()
                 && let Some(char) = keyboard::scancode_to_char(code)
             {
-                match char {
-                    '\n' => {
-                        self.console.write_charactor('\n');
+                if char == ShellCommands::enter() {
+                    self.console.write_charactor('\n');
 
-                        if self.length != 0 {
-                            self.execute_line();
-                            self.length = 0;
-                        }
-                        self.console.write_charactor('>');
+                    if self.length != 0 {
+                        self.execute_line();
+                        self.length = 0;
                     }
-                    '\u{0008}' => {
-                        if self.length > 0 && self.pop_char().is_some() {
-                            self.console.backspace();
-                        };
-                    }
-                    _ => {
-                        self.console.write_charactor(char);
-                        self.push_char(char);
-                    }
+                    self.console.write_charactor('>');
+                } else if char == ShellCommands::backspace() {
+                    if self.length > 0 && self.pop_char().is_some() {
+                        self.console.backspace();
+                    };
+                } else {
+                    self.console.write_charactor(char);
+                    self.push_char(char);
                 }
             }
 
