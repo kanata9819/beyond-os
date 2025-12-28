@@ -94,7 +94,7 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                     writeln!(self.console, "mem: to show memory map\n").unwrap();
                     writeln!(
                         self.console,
-                        "alloctest: to test allocator and show next adderess\n"
+                        "alloctest | at: to test allocator and show next adderess\n"
                     )
                     .unwrap();
                 }
@@ -104,8 +104,8 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                 "mem" => {
                     mem::show_memory_map(&mut self.console, self.regions.iter().copied());
                 }
-                "alloctest" => {
-                    let addr = mem::alloc_frame(&mut self.console, self.regions.iter().copied());
+                "alloctest" | "at" => {
+                    let addr = mem::alloc_frame();
                     writeln!(self.console, "{}", addr.unwrap()).unwrap();
                 }
                 _ => {

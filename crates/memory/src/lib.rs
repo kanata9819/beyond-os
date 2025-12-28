@@ -2,6 +2,7 @@
 #![no_main]
 
 use crate::frame::FrameAllocator;
+use spin::Mutex;
 
 mod frame;
 mod heap;
@@ -28,6 +29,30 @@ pub enum MemRegionKind {
     Reserved,
     Other,
 }
+
+struct MemRegionIter {
+    regions: &'static [MemRegion],
+    index: usize,
+}
+
+impl MemRegionIter {
+    fn new(regions: &'static [MemRegion]) -> Self {
+        Self { regions, index: 0 }
+    }
+}
+
+impl Iterator for MemRegionIter {
+    type Item = MemRegion;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let region = self.regions.get(self.index)?;
+        self.index += 1;
+        Some(*region)
+    }
+}
+
+static FRAME_ALLOCATOR: Mutex<Option<frame::BumpFrameAllocator<MemRegionIter>>> =
+    Mutex::new(None);
 
 /// Generic address range [start, end) used for range checks.
 #[derive(Clone, Copy, Debug)]
@@ -64,14 +89,16 @@ pub fn align_down(x: u64, a: u64) -> u64 {
     x & !(a - 1)
 }
 
-#[allow(unused_variables)]
-/// Allocate one physical frame from the provided memory regions.
-pub fn alloc_frame<I: IntoIterator<Item = MemRegion>>(
-    regions: I,
-    console: &mut impl core::fmt::Write,
-) -> Option<u64> {
-    let mut allocator = frame::BumpFrameAllocator::new(regions.into_iter());
-    allocator.alloc_frame()
+/// Initialize the global frame allocator from a memory region slice.
+pub fn init_frame_allocator(regions: &'static [MemRegion]) {
+    let mut allocator = FRAME_ALLOCATOR.lock();
+    *allocator = Some(frame::BumpFrameAllocator::new(MemRegionIter::new(regions)));
+}
+
+/// Allocate one physical frame from the global allocator.
+pub fn alloc_frame() -> Option<u64> {
+    let mut allocator = FRAME_ALLOCATOR.lock();
+    allocator.as_mut()?.alloc_frame()
 }
 
 /// Dump the bootloader memory map to the provided console.

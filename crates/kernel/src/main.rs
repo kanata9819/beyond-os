@@ -42,9 +42,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
             init_heap(boot_info.physical_memory_offset, regions);
 
+            let regions_for_allocator = convert_regions(regions);
+            let regions_for_shell = regions_for_allocator.clone();
+            // Leak the Vec to obtain a 'static slice for the global allocator.
+            let regions_slice: &'static [MemRegion] = regions_for_allocator.leak();
+            memory::init_frame_allocator(regions_slice);
+
             Shell::new(
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black()),
-                convert_regions(regions),
+                regions_for_shell,
             )
             .run_shell();
         }
