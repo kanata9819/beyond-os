@@ -39,12 +39,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
-
             init_heap(boot_info.physical_memory_offset, regions);
 
             let regions_for_allocator = convert_regions(regions);
             let regions_for_shell = regions_for_allocator.clone();
-            // Leak the Vec to obtain a 'static slice for the global allocator.
             let regions_slice: &'static [MemRegion] = regions_for_allocator.leak();
             memory::init_frame_allocator(regions_slice);
 
