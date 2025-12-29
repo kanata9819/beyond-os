@@ -7,7 +7,7 @@ members = [
     "crates/drivers/keyboard",
     "crates/graphics",
     "crates/shell",
-    "crates/meta", "crates/memory",
+    "crates/meta", "crates/memory", "crates/fs",
 ]
 resolver = "3"
 
