@@ -117,3 +117,23 @@ impl FileSystem {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::FileSystem;
+
+    #[test]
+    fn create_and_read_file() {
+        let mut fs = FileSystem::new(10000, 4096);
+
+        fs.create_file("a.txt", b"hello").unwrap();
+        let data = fs.read_file("a.txt").unwrap();
+        assert_eq!(data, b"hello");
+
+        let entry = fs.files.get("a.txt").unwrap();
+        dbg!(&entry);
+        assert_eq!(entry.size, 5);
+        assert_eq!(entry.block_count, 1);
+        assert_eq!(fs.used_blocks(), 1);
+    }
+}
