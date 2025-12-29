@@ -1,7 +1,10 @@
 use x86_64::{
     PhysAddr, VirtAddr,
     registers::control::Cr3,
-    structures::paging::{FrameAllocator, OffsetPageTable, PageTable, PhysFrame, Size4KiB},
+    structures::paging::{
+        FrameAllocator, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+        mapper::MapToError,
+    },
 };
 
 use crate::{MemRegion, MemRegionKind, PAGE_SIZE, align_down, align_up};
@@ -15,6 +18,32 @@ pub unsafe fn init(physical_memory_offset: VirtAddr) -> OffsetPageTable<'static>
     let level_4_table: &'static mut PageTable =
         unsafe { active_level_4_table(physical_memory_offset) };
     unsafe { OffsetPageTable::new(level_4_table, physical_memory_offset) }
+}
+
+/// Frame allocator backed by the global `alloc_frame` bump allocator.
+pub struct GlobalFrameAllocator;
+
+unsafe impl FrameAllocator<Size4KiB> for GlobalFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame> {
+        let addr = crate::alloc_frame()?;
+        Some(PhysFrame::containing_address(PhysAddr::new(addr)))
+    }
+}
+
+/// Map a single 4 KiB page to the specified physical frame.
+pub fn map_one_page(
+    virt: VirtAddr,
+    phys: PhysAddr,
+    mapper: &mut OffsetPageTable<'static>,
+    frame_allocator: &mut impl FrameAllocator<Size4KiB>,
+) -> Result<(), MapToError<Size4KiB>> {
+    use x86_64::structures::paging::Mapper;
+
+    let page = Page::containing_address(virt);
+    let frame = PhysFrame::containing_address(phys);
+    let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+    unsafe { mapper.map_to(page, frame, flags, frame_allocator)?.flush() };
+    Ok(())
 }
 
 /// Returns a mutable reference to the active level 4 page table.

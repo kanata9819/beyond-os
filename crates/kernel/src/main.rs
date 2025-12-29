@@ -10,7 +10,7 @@ use bootloader_api::{
     BootInfo, BootloaderConfig,
     config::Mapping,
     entry_point,
-    info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions, Optional},
+    info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions},
 };
 use console::{console::TextConsole, console_trait::Console, serial};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
@@ -39,7 +39,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
-            init_heap(boot_info.physical_memory_offset, regions);
+            let phys_offset = boot_info.physical_memory_offset.into_option();
+            init_heap(phys_offset, regions);
 
             let regions_for_allocator = convert_regions(regions);
             let regions_for_shell = regions_for_allocator.clone();
@@ -49,6 +50,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             Shell::new(
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black()),
                 regions_for_shell,
+                phys_offset.expect("No physical memory offset"),
             )
             .run_shell();
         }
@@ -58,8 +60,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     };
 }
 
-fn init_heap(phys_offset: Optional<u64>, regions: &MemoryRegions) {
-    if let Some(offset) = phys_offset.into_option() {
+fn init_heap(phys_offset: Option<u64>, regions: &MemoryRegions) {
+    if let Some(offset) = phys_offset {
         let mut mapper = unsafe { paging::init(VirtAddr::new(offset)) };
 
         let iter = regions.iter().map(|region| MemRegion {

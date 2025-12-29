@@ -1,4 +1,4 @@
-use crate::{MemRegion, PAGE_SIZE, align_down, align_up};
+use crate::{MemRegion, MemRegionKind, PAGE_SIZE, align_down, align_up};
 
 /// Physical frame allocator interface.
 pub trait FrameAllocator {
@@ -45,6 +45,9 @@ impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
 
             // 今の region を使い切った or まだ無い → 次の region へ
             let mut next: MemRegion = self.regions.next()?;
+            if next.kind != MemRegionKind::Usable {
+                continue;
+            }
 
             // ページ境界に合わせる
             let start: u64 = align_up(next.start, PAGE_SIZE);

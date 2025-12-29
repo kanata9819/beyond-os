@@ -446,6 +446,7 @@ dependencies = [
  "keyboard",
  "memory",
  "meta",
+ "x86_64",
 ]
 
 [[package]]
