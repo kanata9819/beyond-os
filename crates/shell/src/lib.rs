@@ -95,12 +95,12 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                 }
                 "help" => {
                     writeln!(self.console, "Show Help\n").unwrap();
-                    writeln!(self.console, "hello: to greet to OS\n").unwrap();
-                    writeln!(self.console, "version: to show version of Beyond OS\n").unwrap();
-                    writeln!(self.console, "mem: to show memory map\n").unwrap();
+                    writeln!(self.console, "hello: to greet to OS").unwrap();
+                    writeln!(self.console, "version: to show version of Beyond OS").unwrap();
+                    writeln!(self.console, "mem: to show memory map").unwrap();
                     writeln!(
                         self.console,
-                        "alloctest | at: to test allocator and show next adderess\n"
+                        "alloctest(at): to test allocator and show next adderess"
                     )
                     .unwrap();
                 }
