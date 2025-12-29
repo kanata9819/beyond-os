@@ -34,7 +34,6 @@ impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
     fn alloc_frame(&mut self) -> Option<u64> {
         loop {
             if let Some(region) = &self.current {
-                // 次に確保するアドレスが、この region の範囲内か？
                 if self.next_addr < region.end {
                     let addr: u64 = self.next_addr;
                     self.next_addr += PAGE_SIZE;
@@ -43,17 +42,14 @@ impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
                 }
             }
 
-            // 今の region を使い切った or まだ無い → 次の region へ
             let mut next: MemRegion = self.regions.next()?;
             if next.kind != MemRegionKind::Usable {
                 continue;
             }
 
-            // ページ境界に合わせる
             let start: u64 = align_up(next.start, PAGE_SIZE);
             let end: u64 = align_down(next.end, PAGE_SIZE);
             if start >= end {
-                // ページ単位で使えない領域はスキップ
                 continue;
             }
 
