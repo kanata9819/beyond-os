@@ -32,6 +32,20 @@ pub struct PciDevice {
     pub header_type: u8,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BarKind {
+    Io,
+    Mmio32,
+    Mmio64,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Bar {
+    pub kind: BarKind,
+    pub base: u64,
+    pub size: Option<u64>,
+}
+
 /// Read a 32-bit value from PCI config space via 0xCF8/0xCFC.
 /// Encodes BDF and a dword-aligned offset into 0xCF8, then reads from 0xCFC.
 fn read_config_dword(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
@@ -51,6 +65,22 @@ fn read_config_dword(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
         let mut data_port = Port::<u32>::new(CONFIG_DATA);
         addr_port.write(address);
         data_port.read()
+    }
+}
+
+/// Write a 32-bit value into PCI config space via 0xCF8/0xCFC.
+fn write_config_dword(bus: u8, device: u8, function: u8, offset: u8, value: u32) {
+    let address = 0x8000_0000u32
+        | ((bus as u32) << 16)
+        | ((device as u32) << 11)
+        | ((function as u32) << 8)
+        | (offset as u32 & 0xfc);
+
+    unsafe {
+        let mut addr_port = Port::<u32>::new(CONFIG_ADDRESS);
+        let mut data_port = Port::<u32>::new(CONFIG_DATA);
+        addr_port.write(address);
+        data_port.write(value);
     }
 }
 
@@ -121,5 +151,112 @@ pub fn scan(mut f: impl FnMut(PciDevice)) {
                 });
             }
         }
+    }
+}
+
+/// Read a BAR (0..5) and decode its type/base/size.
+/// Returns None when the BAR is unimplemented or index is out of range.
+pub fn read_bar(bus: u8, device: u8, function: u8, index: u8) -> Option<Bar> {
+    if index >= 6 {
+        return None;
+    }
+
+    let offset = 0x10u8 + (index * 4);
+    let original = read_config_dword(bus, device, function, offset);
+    if original == 0 {
+        return None;
+    }
+
+    // I/O BAR: bit0 = 1, base is in bits 31..2.
+    if (original & 0x1) == 0x1 {
+        let base = (original & 0xffff_fffc) as u64;
+        let size = bar_size_io(bus, device, function, offset, original);
+        return Some(Bar {
+            kind: BarKind::Io,
+            base,
+            size,
+        });
+    }
+
+    // Memory BAR: bit0 = 0, type is in bits 2..1.
+    let mem_type = (original >> 1) & 0x3;
+    if mem_type == 0x2 {
+        // 64-bit MMIO uses the next BAR as the upper 32 bits.
+        if index == 5 {
+            return None;
+        }
+        let upper = read_config_dword(bus, device, function, offset + 4);
+        let base = ((upper as u64) << 32) | ((original & 0xffff_fff0) as u64);
+        let size = bar_size_mmio64(bus, device, function, offset, original, upper);
+        return Some(Bar {
+            kind: BarKind::Mmio64,
+            base,
+            size,
+        });
+    }
+
+    // 32-bit MMIO.
+    let base = (original & 0xffff_fff0) as u64;
+    let size = bar_size_mmio32(bus, device, function, offset, original);
+    Some(Bar {
+        kind: BarKind::Mmio32,
+        base,
+        size,
+    })
+}
+
+fn bar_size_io(bus: u8, device: u8, function: u8, offset: u8, original: u32) -> Option<u64> {
+    // Write all 1s, read back the size mask, then restore original value.
+    write_config_dword(bus, device, function, offset, 0xffff_ffff);
+    let mask = read_config_dword(bus, device, function, offset) & 0xffff_fffc;
+    write_config_dword(bus, device, function, offset, original);
+    let size = (!mask).wrapping_add(1) & 0xffff_fffc;
+    if size == 0 {
+        None
+    } else {
+        Some(size as u64)
+    }
+}
+
+fn bar_size_mmio32(
+    bus: u8,
+    device: u8,
+    function: u8,
+    offset: u8,
+    original: u32,
+) -> Option<u64> {
+    // Write all 1s, read back the size mask, then restore original value.
+    write_config_dword(bus, device, function, offset, 0xffff_ffff);
+    let mask = read_config_dword(bus, device, function, offset) & 0xffff_fff0;
+    write_config_dword(bus, device, function, offset, original);
+    let size = (!mask).wrapping_add(1) & 0xffff_fff0;
+    if size == 0 {
+        None
+    } else {
+        Some(size as u64)
+    }
+}
+
+fn bar_size_mmio64(
+    bus: u8,
+    device: u8,
+    function: u8,
+    offset: u8,
+    original_low: u32,
+    original_high: u32,
+) -> Option<u64> {
+    // Write all 1s into both halves, read masks, then restore originals.
+    write_config_dword(bus, device, function, offset, 0xffff_ffff);
+    write_config_dword(bus, device, function, offset + 4, 0xffff_ffff);
+    let low_mask = read_config_dword(bus, device, function, offset) & 0xffff_fff0;
+    let high_mask = read_config_dword(bus, device, function, offset + 4);
+    write_config_dword(bus, device, function, offset, original_low);
+    write_config_dword(bus, device, function, offset + 4, original_high);
+    let mask = ((high_mask as u64) << 32) | (low_mask as u64);
+    let size = (!mask).wrapping_add(1);
+    if size == 0 {
+        None
+    } else {
+        Some(size)
     }
 }
