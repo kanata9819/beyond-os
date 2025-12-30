@@ -16,6 +16,7 @@ use console::{console::TextConsole, console_trait::Console, serial, serial_print
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind, paging};
 use shell::Shell;
+mod virtio_blk;
 use x86_64::{VirtAddr, instructions::interrupts as cpu_int};
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
@@ -42,6 +43,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             let phys_offset = boot_info.physical_memory_offset.into_option();
             init_heap(phys_offset, regions);
 
+            let regions_for_allocator = convert_regions(regions);
+            let regions_for_shell = regions_for_allocator.clone();
+            let regions_slice: &'static [MemRegion] = regions_for_allocator.leak();
+            memory::init_frame_allocator(regions_slice);
+
             serial_println!("PCI scan:");
             pci::scan(|dev| {
                 if dev.vendor_id == 0x1af4 {
@@ -56,6 +62,47 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                         dev.subclass,
                         dev.prog_if
                     );
+                    for bar_index in 0u8..6 {
+                        if let Some(bar) =
+                            pci::read_bar(dev.bus, dev.device, dev.function, bar_index)
+                        {
+                            serial_println!(
+                                "  bar{}: kind={:?} base=0x{:x} size={:?}",
+                                bar_index,
+                                bar.kind,
+                                bar.base,
+                                bar.size
+                            );
+                        }
+                    }
+                    if dev.device_id == 0x1001 {
+                        if let Some(bar) = pci::read_bar(dev.bus, dev.device, dev.function, 0) {
+                            if bar.kind == arch::pci::BarKind::Io {
+                                pci::enable_io_bus_master(dev.bus, dev.device, dev.function);
+                                if let Some(offset) = phys_offset {
+                                    match virtio_blk::init_legacy(bar.base as u16, offset) {
+                                        Ok(mut blk) => {
+                                            serial_println!(
+                                                "virtio-blk capacity: {} sectors",
+                                                blk.capacity_sectors()
+                                            );
+                                            let mut buf = [0u8; 512];
+                                            if blk.read_sector(0, &mut buf).is_ok() {
+                                                serial_println!("virtio-blk read sector 0 ok");
+                                            } else {
+                                                serial_println!("virtio-blk read sector 0 failed");
+                                            }
+                                        }
+                                        Err(e) => {
+                                            serial_println!("virtio-blk init failed: {}", e);
+                                        }
+                                    }
+                                } else {
+                                    serial_println!("virtio-blk: no physical memory offset");
+                                }
+                            }
+                        }
+                    }
                 } else {
                     serial_println!(
                         "pci {:02x}:{:02x}.{:x} vendor={:04x} device={:04x} class={:02x} subclass={:02x} prog_if={:02x}",
@@ -70,11 +117,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                     );
                 }
             });
-
-            let regions_for_allocator = convert_regions(regions);
-            let regions_for_shell = regions_for_allocator.clone();
-            let regions_slice: &'static [MemRegion] = regions_for_allocator.leak();
-            memory::init_frame_allocator(regions_slice);
 
             Shell::new(
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black()),

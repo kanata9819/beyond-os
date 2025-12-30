@@ -84,6 +84,15 @@ fn write_config_dword(bus: u8, device: u8, function: u8, offset: u8, value: u32)
     }
 }
 
+/// Enable PCI command bits (I/O space and bus mastering).
+pub fn enable_io_bus_master(bus: u8, device: u8, function: u8) {
+    let value = read_config_dword(bus, device, function, 0x04);
+    let cmd = (value & 0xffff) as u16;
+    let status = value & 0xffff_0000;
+    let new_cmd = cmd | 0x0001 | 0x0004;
+    write_config_dword(bus, device, function, 0x04, status | (new_cmd as u32));
+}
+
 /// Read a 16-bit value from PCI config space.
 /// Reads the containing dword, then selects lower/upper 16 bits by offset bit 1.
 fn read_config_word(bus: u8, device: u8, function: u8, offset: u8) -> u16 {

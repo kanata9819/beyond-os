@@ -1,0 +1,266 @@
+use core::mem::{align_of, size_of};
+use core::ptr;
+use core::sync::atomic::{Ordering, fence};
+
+use memory::align_up_usize;
+use x86_64::instructions::port::Port;
+
+const QUEUE_SIZE: u16 = 8;
+const SECTOR_SIZE: usize = 512;
+
+const VIRTQ_DESC_F_NEXT: u16 = 1;
+const VIRTQ_DESC_F_WRITE: u16 = 2;
+
+const VIRTIO_BLK_T_IN: u32 = 0;
+const VIRTIO_BLK_T_OUT: u32 = 1;
+
+const STATUS_ACK: u8 = 0x01;
+const STATUS_DRIVER: u8 = 0x02;
+const STATUS_DRIVER_OK: u8 = 0x04;
+
+const REG_HOST_FEATURES: u16 = 0x00;
+const REG_GUEST_FEATURES: u16 = 0x04;
+const REG_QUEUE_PFN: u16 = 0x08;
+const REG_QUEUE_NUM: u16 = 0x0c;
+const REG_QUEUE_SEL: u16 = 0x0e;
+const REG_QUEUE_NOTIFY: u16 = 0x10;
+const REG_STATUS: u16 = 0x12;
+const REG_CONFIG: u16 = 0x14;
+
+#[repr(C, align(16))]
+struct VirtqDesc {
+    addr: u64,
+    len: u32,
+    flags: u16,
+    next: u16,
+}
+
+#[repr(C)]
+struct VirtqAvail {
+    flags: u16,
+    idx: u16,
+    ring: [u16; QUEUE_SIZE as usize],
+    used_event: u16,
+}
+
+#[repr(C)]
+struct VirtqUsedElem {
+    id: u32,
+    len: u32,
+}
+
+#[repr(C)]
+struct VirtqUsed {
+    flags: u16,
+    idx: u16,
+    ring: [VirtqUsedElem; QUEUE_SIZE as usize],
+    avail_event: u16,
+}
+
+#[repr(C)]
+struct VirtioBlkReq {
+    req_type: u32,
+    reserved: u32,
+    sector: u64,
+}
+
+pub struct VirtioBlk {
+    io_base: u16,
+    queue_size: u16,
+    queue_paddr: u64,
+    desc: *mut VirtqDesc,
+    avail: *mut VirtqAvail,
+    used: *mut VirtqUsed,
+    last_used_idx: u16,
+    req_paddr: u64,
+    req_vaddr: *mut u8,
+    capacity_sectors: u64,
+}
+
+impl VirtioBlk {
+    pub fn capacity_sectors(&self) -> u64 {
+        self.capacity_sectors
+    }
+
+    pub fn read_sector(
+        &mut self,
+        sector: u64,
+        out: &mut [u8; SECTOR_SIZE],
+    ) -> Result<(), &'static str> {
+        unsafe {
+            self.submit_request(VIRTIO_BLK_T_IN, sector)?;
+            let data_ptr = self.req_vaddr.add(size_of::<VirtioBlkReq>());
+            ptr::copy_nonoverlapping(data_ptr, out.as_mut_ptr(), SECTOR_SIZE);
+        }
+        Ok(())
+    }
+
+    pub fn write_sector(
+        &mut self,
+        sector: u64,
+        data: &[u8; SECTOR_SIZE],
+    ) -> Result<(), &'static str> {
+        unsafe {
+            let data_ptr = self.req_vaddr.add(size_of::<VirtioBlkReq>());
+            ptr::copy_nonoverlapping(data.as_ptr(), data_ptr, SECTOR_SIZE);
+            self.submit_request(VIRTIO_BLK_T_OUT, sector)?;
+        }
+        Ok(())
+    }
+
+    unsafe fn submit_request(&mut self, req_type: u32, sector: u64) -> Result<(), &'static str> {
+        let status = unsafe {
+            let header_ptr = self.req_vaddr as *mut VirtioBlkReq;
+            (*header_ptr).req_type = req_type;
+            (*header_ptr).reserved = 0;
+            (*header_ptr).sector = sector;
+
+            let status_ptr = self.req_vaddr.add(size_of::<VirtioBlkReq>() + SECTOR_SIZE);
+            *status_ptr = 0xff;
+
+            let desc = core::slice::from_raw_parts_mut(self.desc, self.queue_size as usize);
+            desc[0] = VirtqDesc {
+                addr: self.req_paddr,
+                len: size_of::<VirtioBlkReq>() as u32,
+                flags: VIRTQ_DESC_F_NEXT,
+                next: 1,
+            };
+            desc[1] = VirtqDesc {
+                addr: self.req_paddr + size_of::<VirtioBlkReq>() as u64,
+                len: SECTOR_SIZE as u32,
+                flags: VIRTQ_DESC_F_NEXT
+                    | if req_type == VIRTIO_BLK_T_IN {
+                        VIRTQ_DESC_F_WRITE
+                    } else {
+                        0
+                    },
+                next: 2,
+            };
+            desc[2] = VirtqDesc {
+                addr: self.req_paddr + (size_of::<VirtioBlkReq>() + SECTOR_SIZE) as u64,
+                len: 1,
+                flags: VIRTQ_DESC_F_WRITE,
+                next: 0,
+            };
+
+            let avail = &mut *self.avail;
+            let ring_index = (avail.idx % self.queue_size) as usize;
+            avail.ring[ring_index] = 0;
+            fence(Ordering::SeqCst);
+            avail.idx = avail.idx.wrapping_add(1);
+
+            io_write_u16(self.io_base, REG_QUEUE_NOTIFY, 0);
+
+            let used = &mut *self.used;
+            while used.idx == self.last_used_idx {
+                core::hint::spin_loop();
+            }
+            fence(Ordering::SeqCst);
+            self.last_used_idx = self.last_used_idx.wrapping_add(1);
+
+            *status_ptr
+        };
+
+        if status != 0 {
+            return Err("virtio-blk request failed");
+        }
+
+        Ok(())
+    }
+}
+
+pub fn init_legacy(io_base: u16, phys_offset: u64) -> Result<VirtioBlk, &'static str> {
+    // Reset device status, then acknowledge and announce the driver.
+    io_write_u8(io_base, REG_STATUS, 0);
+    io_write_u8(io_base, REG_STATUS, STATUS_ACK);
+    io_write_u8(io_base, REG_STATUS, STATUS_ACK | STATUS_DRIVER);
+
+    // Read and ignore host features for now, then advertise none.
+    let _host_features = io_read_u32(io_base, REG_HOST_FEATURES);
+    io_write_u32(io_base, REG_GUEST_FEATURES, 0);
+
+    // Select queue 0 and read its max size.
+    io_write_u16(io_base, REG_QUEUE_SEL, 0);
+    let max_queue = io_read_u16(io_base, REG_QUEUE_NUM);
+    if max_queue == 0 {
+        return Err("virtio-blk: queue 0 not available");
+    }
+    let queue_size = core::cmp::min(max_queue, QUEUE_SIZE);
+    io_write_u16(io_base, REG_QUEUE_NUM, queue_size);
+
+    // Allocate a page for the virtqueue and set the queue PFN.
+    let queue_paddr = memory::alloc_frame().ok_or("virtio-blk: no frames")?;
+    let queue_vaddr = phys_offset + queue_paddr;
+    unsafe { ptr::write_bytes(queue_vaddr as *mut u8, 0, memory::PAGE_SIZE as usize) };
+
+    let desc_size = size_of::<VirtqDesc>() * queue_size as usize;
+    let avail_offset = align_up_usize(desc_size, align_of::<VirtqAvail>());
+    let avail_size = size_of::<VirtqAvail>();
+    let used_offset = align_up_usize(avail_offset + avail_size, align_of::<VirtqUsed>());
+    let used_size = size_of::<VirtqUsed>();
+
+    let total = used_offset + used_size;
+    if total > memory::PAGE_SIZE as usize {
+        return Err("virtio-blk: queue layout exceeds one page");
+    }
+
+    let desc_ptr = queue_vaddr as *mut VirtqDesc;
+    let avail_ptr = (queue_vaddr + avail_offset as u64) as *mut VirtqAvail;
+    let used_ptr = (queue_vaddr + used_offset as u64) as *mut VirtqUsed;
+
+    let queue_pfn = queue_paddr / memory::PAGE_SIZE;
+    io_write_u32(io_base, REG_QUEUE_PFN, queue_pfn as u32);
+
+    // Allocate one page for request header + data + status.
+    let req_paddr = memory::alloc_frame().ok_or("virtio-blk: no frames")?;
+    let req_vaddr = (phys_offset + req_paddr) as *mut u8;
+    unsafe { ptr::write_bytes(req_vaddr, 0, memory::PAGE_SIZE as usize) };
+
+    // Read capacity (in 512-byte sectors) from the device-specific config.
+    let cap_low = io_read_u32(io_base, REG_CONFIG);
+    let cap_high = io_read_u32(io_base, REG_CONFIG + 4);
+    let capacity_sectors = ((cap_high as u64) << 32) | cap_low as u64;
+
+    io_write_u8(
+        io_base,
+        REG_STATUS,
+        STATUS_ACK | STATUS_DRIVER | STATUS_DRIVER_OK,
+    );
+
+    Ok(VirtioBlk {
+        io_base,
+        queue_size,
+        queue_paddr,
+        desc: desc_ptr,
+        avail: avail_ptr,
+        used: used_ptr,
+        last_used_idx: 0,
+        req_paddr,
+        req_vaddr,
+        capacity_sectors,
+    })
+}
+
+fn io_read_u8(base: u16, offset: u16) -> u8 {
+    unsafe { Port::<u8>::new(base + offset).read() }
+}
+
+fn io_read_u16(base: u16, offset: u16) -> u16 {
+    unsafe { Port::<u16>::new(base + offset).read() }
+}
+
+fn io_read_u32(base: u16, offset: u16) -> u32 {
+    unsafe { Port::<u32>::new(base + offset).read() }
+}
+
+fn io_write_u8(base: u16, offset: u16, value: u8) {
+    unsafe { Port::<u8>::new(base + offset).write(value) }
+}
+
+fn io_write_u16(base: u16, offset: u16, value: u16) {
+    unsafe { Port::<u16>::new(base + offset).write(value) }
+}
+
+fn io_write_u32(base: u16, offset: u16, value: u32) {
+    unsafe { Port::<u32>::new(base + offset).write(value) }
+}
