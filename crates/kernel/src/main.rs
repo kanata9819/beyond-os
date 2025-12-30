@@ -75,32 +75,31 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                             );
                         }
                     }
-                    if dev.device_id == 0x1001 {
-                        if let Some(bar) = pci::read_bar(dev.bus, dev.device, dev.function, 0) {
-                            if bar.kind == arch::pci::BarKind::Io {
-                                pci::enable_io_bus_master(dev.bus, dev.device, dev.function);
-                                if let Some(offset) = phys_offset {
-                                    match virtio_blk::init_legacy(bar.base as u16, offset) {
-                                        Ok(mut blk) => {
-                                            serial_println!(
-                                                "virtio-blk capacity: {} sectors",
-                                                blk.capacity_sectors()
-                                            );
-                                            let mut buf = [0u8; 512];
-                                            if blk.read_sector(0, &mut buf).is_ok() {
-                                                serial_println!("virtio-blk read sector 0 ok");
-                                            } else {
-                                                serial_println!("virtio-blk read sector 0 failed");
-                                            }
-                                        }
-                                        Err(e) => {
-                                            serial_println!("virtio-blk init failed: {}", e);
-                                        }
+                    if dev.device_id == 0x1001
+                        && let Some(bar) = pci::read_bar(dev.bus, dev.device, dev.function, 0)
+                        && bar.kind == arch::pci::BarKind::Io
+                    {
+                        pci::enable_io_bus_master(dev.bus, dev.device, dev.function);
+                        if let Some(offset) = phys_offset {
+                            match virtio_blk::init_legacy(bar.base as u16, offset) {
+                                Ok(mut blk) => {
+                                    serial_println!(
+                                        "virtio-blk capacity: {} sectors",
+                                        blk.capacity_sectors()
+                                    );
+                                    let mut buf = [0u8; 512];
+                                    if blk.read_sector(0, &mut buf).is_ok() {
+                                        serial_println!("virtio-blk read sector 0 ok");
+                                    } else {
+                                        serial_println!("virtio-blk read sector 0 failed");
                                     }
-                                } else {
-                                    serial_println!("virtio-blk: no physical memory offset");
+                                }
+                                Err(e) => {
+                                    serial_println!("virtio-blk init failed: {}", e);
                                 }
                             }
+                        } else {
+                            serial_println!("virtio-blk: no physical memory offset");
                         }
                     }
                 } else {
