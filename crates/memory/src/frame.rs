@@ -33,14 +33,13 @@ impl<I: Iterator<Item = MemRegion>> BumpFrameAllocator<I> {
 impl<I: Iterator<Item = MemRegion>> FrameAllocator for BumpFrameAllocator<I> {
     fn alloc_frame(&mut self) -> Option<u64> {
         loop {
-            if let Some(region) = &self.current {
-                if self.next_addr < region.end {
+            if let Some(region) = &self.current
+                && self.next_addr < region.end {
                     let addr: u64 = self.next_addr;
                     self.next_addr += PAGE_SIZE;
 
                     return Some(addr);
                 }
-            }
 
             let mut next: MemRegion = self.regions.next()?;
             if next.kind != MemRegionKind::Usable {
