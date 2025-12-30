@@ -12,6 +12,7 @@ const VIRTQ_DESC_F_NEXT: u16 = 1;
 const VIRTQ_DESC_F_WRITE: u16 = 2;
 
 const VIRTIO_BLK_T_IN: u32 = 0;
+#[allow(dead_code)]
 const VIRTIO_BLK_T_OUT: u32 = 1;
 
 const STATUS_ACK: u8 = 0x01;
@@ -36,11 +37,9 @@ struct VirtqDesc {
 }
 
 #[repr(C)]
-struct VirtqAvail {
+struct VirtqAvailHeader {
     flags: u16,
     idx: u16,
-    ring: [u16; QUEUE_SIZE as usize],
-    used_event: u16,
 }
 
 #[repr(C)]
@@ -50,11 +49,9 @@ struct VirtqUsedElem {
 }
 
 #[repr(C)]
-struct VirtqUsed {
+struct VirtqUsedHeader {
     flags: u16,
     idx: u16,
-    ring: [VirtqUsedElem; QUEUE_SIZE as usize],
-    avail_event: u16,
 }
 
 #[repr(C)]
@@ -67,10 +64,11 @@ struct VirtioBlkReq {
 pub struct VirtioBlk {
     io_base: u16,
     queue_size: u16,
+    #[allow(dead_code)]
     queue_paddr: u64,
     desc: *mut VirtqDesc,
-    avail: *mut VirtqAvail,
-    used: *mut VirtqUsed,
+    avail: *mut VirtqAvailHeader,
+    used: *mut VirtqUsedHeader,
     last_used_idx: u16,
     req_paddr: u64,
     req_vaddr: *mut u8,
@@ -95,6 +93,7 @@ impl VirtioBlk {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn write_sector(
         &mut self,
         sector: u64,
@@ -145,22 +144,34 @@ impl VirtioBlk {
 
             let avail = &mut *self.avail;
             let ring_index = (avail.idx % self.queue_size) as usize;
-            avail.ring[ring_index] = 0;
+            let ring_ptr = (self.avail as *mut u8).add(4 + ring_index * 2) as *mut u16;
+            ptr::write_volatile(ring_ptr, 0);
             fence(Ordering::SeqCst);
             avail.idx = avail.idx.wrapping_add(1);
 
             io_write_u16(self.io_base, REG_QUEUE_NOTIFY, 0);
 
             let used = &mut *self.used;
-            while used.idx == self.last_used_idx {
+            let mut spins = 0u64;
+            while ptr::read_volatile(&used.idx) == self.last_used_idx {
                 core::hint::spin_loop();
+                spins = spins.wrapping_add(1);
+                if spins == 5_000_000 {
+                    break;
+                }
             }
             fence(Ordering::SeqCst);
-            self.last_used_idx = self.last_used_idx.wrapping_add(1);
-
-            *status_ptr
+            if used.idx == self.last_used_idx {
+                0xfe
+            } else {
+                self.last_used_idx = self.last_used_idx.wrapping_add(1);
+                *status_ptr
+            }
         };
 
+        if status == 0xfe {
+            return Err("virtio-blk request timed out");
+        }
         if status != 0 {
             return Err("virtio-blk request failed");
         }
@@ -194,10 +205,10 @@ pub fn init_legacy(io_base: u16, phys_offset: u64) -> Result<VirtioBlk, &'static
     unsafe { ptr::write_bytes(queue_vaddr as *mut u8, 0, memory::PAGE_SIZE as usize) };
 
     let desc_size = size_of::<VirtqDesc>() * queue_size as usize;
-    let avail_offset = align_up_usize(desc_size, align_of::<VirtqAvail>());
-    let avail_size = size_of::<VirtqAvail>();
-    let used_offset = align_up_usize(avail_offset + avail_size, align_of::<VirtqUsed>());
-    let used_size = size_of::<VirtqUsed>();
+    let avail_offset = align_up_usize(desc_size, align_of::<VirtqAvailHeader>());
+    let avail_size = 4 + (2 * queue_size as usize) + 2;
+    let used_offset = align_up_usize(avail_offset + avail_size, align_of::<VirtqUsedHeader>());
+    let used_size = 4 + (size_of::<VirtqUsedElem>() * queue_size as usize) + 2;
 
     let total = used_offset + used_size;
     if total > memory::PAGE_SIZE as usize {
@@ -205,8 +216,8 @@ pub fn init_legacy(io_base: u16, phys_offset: u64) -> Result<VirtioBlk, &'static
     }
 
     let desc_ptr = queue_vaddr as *mut VirtqDesc;
-    let avail_ptr = (queue_vaddr + avail_offset as u64) as *mut VirtqAvail;
-    let used_ptr = (queue_vaddr + used_offset as u64) as *mut VirtqUsed;
+    let avail_ptr = (queue_vaddr + avail_offset as u64) as *mut VirtqAvailHeader;
+    let used_ptr = (queue_vaddr + used_offset as u64) as *mut VirtqUsedHeader;
 
     let queue_pfn = queue_paddr / memory::PAGE_SIZE;
     io_write_u32(io_base, REG_QUEUE_PFN, queue_pfn as u32);
@@ -241,6 +252,7 @@ pub fn init_legacy(io_base: u16, phys_offset: u64) -> Result<VirtioBlk, &'static
     })
 }
 
+#[allow(dead_code)]
 fn io_read_u8(base: u16, offset: u16) -> u8 {
     unsafe { Port::<u8>::new(base + offset).read() }
 }
