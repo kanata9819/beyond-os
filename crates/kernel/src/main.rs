@@ -19,6 +19,14 @@ use shell::Shell;
 mod virtio_blk;
 use x86_64::{VirtAddr, instructions::interrupts as cpu_int};
 
+// IDs and sizes from PCI/Virtio specs.
+const VIRTIO_VENDOR_ID: u16 = 0x1af4;
+const VIRTIO_BLK_DEVICE_ID_LEGACY: u16 = 0x1001;
+const PCI_BAR_COUNT: u8 = 6;
+const VIRTIO_LEGACY_BAR_INDEX: u8 = 0;
+const SECTOR_SIZE_BYTES: usize = 512;
+const BOOT_SECTOR_LBA: u64 = 0;
+
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
     let mut config = BootloaderConfig::new_default();
     config.mappings.physical_memory = Some(Mapping::Dynamic);
@@ -50,7 +58,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
             serial_println!("PCI scan:");
             pci::scan(|dev| {
-                if dev.vendor_id == 0x1af4 {
+                if dev.vendor_id == VIRTIO_VENDOR_ID {
                     serial_println!(
                         "pci {:02x}:{:02x}.{:x} vendor={:04x} device={:04x} class={:02x} subclass={:02x} prog_if={:02x} (virtio)",
                         dev.bus,
@@ -62,7 +70,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                         dev.subclass,
                         dev.prog_if
                     );
-                    for bar_index in 0u8..6 {
+                    for bar_index in 0u8..PCI_BAR_COUNT {
                         if let Some(bar) =
                             pci::read_bar(dev.bus, dev.device, dev.function, bar_index)
                         {
@@ -75,8 +83,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                             );
                         }
                     }
-                    if dev.device_id == 0x1001
-                        && let Some(bar) = pci::read_bar(dev.bus, dev.device, dev.function, 0)
+                    if dev.device_id == VIRTIO_BLK_DEVICE_ID_LEGACY
+                        && let Some(bar) = pci::read_bar(
+                            dev.bus,
+                            dev.device,
+                            dev.function,
+                            VIRTIO_LEGACY_BAR_INDEX,
+                        )
                         && bar.kind == arch::pci::BarKind::Io
                     {
                         pci::enable_io_bus_master(dev.bus, dev.device, dev.function);
@@ -87,8 +100,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                                         "virtio-blk capacity: {} sectors",
                                         blk.capacity_sectors()
                                     );
-                                    let mut buf = [0u8; 512];
-                                    if blk.read_sector(0, &mut buf).is_ok() {
+                                    let mut buf = [0u8; SECTOR_SIZE_BYTES];
+                                    if blk.read_sector(BOOT_SECTOR_LBA, &mut buf).is_ok() {
                                         serial_println!("virtio-blk read sector 0 ok");
                                     } else {
                                         serial_println!("virtio-blk read sector 0 failed");
