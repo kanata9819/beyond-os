@@ -211,30 +211,16 @@ fn bar_size_io(bus: u8, device: u8, function: u8, offset: u8, original: u32) -> 
     let mask = read_config_dword(bus, device, function, offset) & 0xffff_fffc;
     write_config_dword(bus, device, function, offset, original);
     let size = (!mask).wrapping_add(1) & 0xffff_fffc;
-    if size == 0 {
-        None
-    } else {
-        Some(size as u64)
-    }
+    if size == 0 { None } else { Some(size as u64) }
 }
 
-fn bar_size_mmio32(
-    bus: u8,
-    device: u8,
-    function: u8,
-    offset: u8,
-    original: u32,
-) -> Option<u64> {
+fn bar_size_mmio32(bus: u8, device: u8, function: u8, offset: u8, original: u32) -> Option<u64> {
     // Write all 1s, read back the size mask, then restore original value.
     write_config_dword(bus, device, function, offset, 0xffff_ffff);
     let mask = read_config_dword(bus, device, function, offset) & 0xffff_fff0;
     write_config_dword(bus, device, function, offset, original);
     let size = (!mask).wrapping_add(1) & 0xffff_fff0;
-    if size == 0 {
-        None
-    } else {
-        Some(size as u64)
-    }
+    if size == 0 { None } else { Some(size as u64) }
 }
 
 fn bar_size_mmio64(
@@ -254,9 +240,5 @@ fn bar_size_mmio64(
     write_config_dword(bus, device, function, offset + 4, original_high);
     let mask = ((high_mask as u64) << 32) | (low_mask as u64);
     let size = (!mask).wrapping_add(1);
-    if size == 0 {
-        None
-    } else {
-        Some(size)
-    }
+    if size == 0 { None } else { Some(size) }
 }
