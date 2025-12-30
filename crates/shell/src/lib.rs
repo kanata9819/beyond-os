@@ -160,6 +160,7 @@ impl<C: ConsoleOut + core::fmt::Write> Shell<C> {
                         }
                     }
                 }
+                "mkdir" => {}
                 _ => {
                     writeln!(self.console, "unknown command: {}", line).unwrap();
                 }

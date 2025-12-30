@@ -1,4 +1,10 @@
-use std::collections::HashMap;
+#![no_std]
+
+extern crate alloc;
+
+use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct FileEntry {
@@ -20,8 +26,8 @@ pub struct FileSystem {
     total_blocks: usize,
     block_size: usize,
     free_blocks: Vec<bool>,
-    files: HashMap<String, FileEntry>,
-    data: HashMap<String, Vec<u8>>,
+    files: BTreeMap<String, FileEntry>,
+    data: BTreeMap<String, Vec<u8>>,
 }
 
 impl FileSystem {
@@ -29,9 +35,9 @@ impl FileSystem {
         Self {
             total_blocks,
             block_size,
-            free_blocks: vec![true; total_blocks],
-            files: HashMap::new(),
-            data: HashMap::new(),
+            free_blocks: alloc::vec![true; total_blocks],
+            files: BTreeMap::new(),
+            data: BTreeMap::new(),
         }
     }
 
@@ -45,14 +51,16 @@ impl FileSystem {
         self.mark_blocks(start_block, needed_blocks, false);
 
         let entry = FileEntry {
-            name: name.to_string(),
+            name: String::from(name),
             size: content.len(),
             start_block,
             block_count: needed_blocks,
         };
 
-        self.files.insert(name.to_string(), entry);
-        self.data.insert(name.to_string(), content.to_vec());
+        self.files.insert(String::from(name), entry);
+        let mut buf = Vec::with_capacity(content.len());
+        buf.extend_from_slice(content);
+        self.data.insert(String::from(name), buf);
         Ok(())
     }
 
@@ -131,7 +139,6 @@ mod tests {
         assert_eq!(data, b"hello");
 
         let entry = fs.files.get("a.txt").unwrap();
-        dbg!(&entry);
         assert_eq!(entry.size, 5);
         assert_eq!(entry.block_count, 1);
         assert_eq!(fs.used_blocks(), 1);

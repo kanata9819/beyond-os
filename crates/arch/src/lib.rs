@@ -6,3 +6,4 @@ pub mod idt;
 pub mod interrupt_handlers;
 pub mod interrupts;
 pub mod pic;
+pub mod pci;

@@ -9,3 +9,4 @@ keyboard = { path = "../drivers/keyboard" }
 meta = { path = "../meta" }
 memory = { path = "../memory" }
 x86_64 = "0.15.4"
+fs = { path = "../fs" }

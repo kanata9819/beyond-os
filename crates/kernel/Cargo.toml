@@ -12,3 +12,4 @@ console = { path = "../console" }
 arch = { path = "../arch" }
 x86_64 = "0.15.4"
 memory = { path = "../memory" }
+fs = { path = "../fs" }

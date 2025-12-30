@@ -5,14 +5,14 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use arch::{idt, interrupts};
+use arch::{idt, interrupts, pci};
 use bootloader_api::{
     BootInfo, BootloaderConfig,
     config::Mapping,
     entry_point,
     info::{FrameBuffer, MemoryRegionKind as BlKind, MemoryRegions},
 };
-use console::{console::TextConsole, console_trait::Console, serial};
+use console::{console::TextConsole, console_trait::Console, serial, serial_println};
 use graphics::{color::Color, frame_buffer::BeyondFramebuffer};
 use memory::{MemRegion, MemRegionKind, paging};
 use shell::Shell;
@@ -41,6 +41,35 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             cpu_int::enable();
             let phys_offset = boot_info.physical_memory_offset.into_option();
             init_heap(phys_offset, regions);
+
+            serial_println!("PCI scan:");
+            pci::scan(|dev| {
+                if dev.vendor_id == 0x1af4 {
+                    serial_println!(
+                        "pci {:02x}:{:02x}.{:x} vendor={:04x} device={:04x} class={:02x} subclass={:02x} prog_if={:02x} (virtio)",
+                        dev.bus,
+                        dev.device,
+                        dev.function,
+                        dev.vendor_id,
+                        dev.device_id,
+                        dev.class_code,
+                        dev.subclass,
+                        dev.prog_if
+                    );
+                } else {
+                    serial_println!(
+                        "pci {:02x}:{:02x}.{:x} vendor={:04x} device={:04x} class={:02x} subclass={:02x} prog_if={:02x}",
+                        dev.bus,
+                        dev.device,
+                        dev.function,
+                        dev.vendor_id,
+                        dev.device_id,
+                        dev.class_code,
+                        dev.subclass,
+                        dev.prog_if
+                    );
+                }
+            });
 
             let regions_for_allocator = convert_regions(regions);
             let regions_for_shell = regions_for_allocator.clone();

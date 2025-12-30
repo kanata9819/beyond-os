@@ -227,6 +227,7 @@ dependencies = [
  "arch",
  "bootloader_api",
  "console",
+ "fs",
  "graphics",
  "keyboard",
  "memory",
@@ -447,6 +448,7 @@ name = "shell"
 version = "0.1.0"
 dependencies = [
  "console",
+ "fs",
  "keyboard",
  "memory",
  "meta",
