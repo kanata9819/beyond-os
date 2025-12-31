@@ -18,6 +18,8 @@ use x86_64::instructions::port::Port;
 const CONFIG_ADDRESS: u16 = 0x0cf8;
 const CONFIG_DATA: u16 = 0x0cfc;
 
+const HEADER_TYPE_MASK: u32 = 0xff;
+
 #[derive(Debug, Clone, Copy)]
 pub struct PciDevice {
     pub bus: u8,
@@ -119,7 +121,7 @@ fn read_class_fields(bus: u8, device: u8, function: u8) -> (u8, u8, u8, u8) {
 fn read_header_type(bus: u8, device: u8, function: u8) -> u8 {
     // Offset 0x0C contains the header type in bits 23..16.
     let value = read_config_dword(bus, device, function, 0x0c);
-    ((value >> 16) & 0xff) as u8
+    ((value >> 16) & HEADER_TYPE_MASK) as u8
 }
 
 /// Scan all buses/devices/functions and pass each present device to the callback.
