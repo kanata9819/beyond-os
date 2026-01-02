@@ -97,8 +97,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                                         "virtio-blk capacity: {} sectors",
                                         blk.capacity_sectors()
                                     );
-                                    let mut buf = [0u8; SECTOR_SIZE_BYTES];
-                                    if blk.read_sector(BOOT_SECTOR_LBA, &mut buf).is_ok() {
+                                    if blk
+                                        .read_sector(BOOT_SECTOR_LBA, &mut [0u8; SECTOR_SIZE_BYTES])
+                                        .is_ok()
+                                    {
                                         serial_println!("virtio-blk read sector 0 ok");
                                     } else {
                                         serial_println!("virtio-blk read sector 0 failed");
