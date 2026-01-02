@@ -76,9 +76,12 @@ unsafe fn inb(port: u16) -> u8 {
 }
 
 /// # Safety
-/// どうすればsafety??
-///
-///
+/// This reads from legacy PS/2 controller I/O ports using inline asm.
+/// Caller must ensure:
+/// - running with sufficient privilege (e.g., ring0) and port I/O is permitted
+/// - a PS/2-compatible controller exists at 0x60/0x64
+/// - no other code concurrently accesses these ports in a way that violates the
+///   controller protocol or races with this read
 pub unsafe fn read_scancode() -> Option<u8> {
     const KBD_STATUS_PORT: u16 = 0x64;
     const KBD_DATA_PORT: u16 = 0x60;
