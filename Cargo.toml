@@ -1,13 +1,15 @@
 [workspace]
 members = [
-    "./crates/kernel",
-    "./crates/os-runner",
+    "crates/kernel",
+    "crates/os-runner",
     "crates/arch",
     "crates/console",
     "crates/drivers/keyboard",
     "crates/graphics",
     "crates/shell",
-    "crates/meta", "crates/memory", "crates/fs",
+    "crates/meta",
+    "crates/memory",
+    "crates/fs",
 ]
 resolver = "3"
 
