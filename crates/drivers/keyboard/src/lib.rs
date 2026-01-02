@@ -11,6 +11,7 @@ pub fn on_scancode(scancode: u8) {
     KEYBOARD_BUFFER.lock().push(scancode);
 }
 
+/// Pop the next queued scancode, if any.
 pub fn pop_scancode() -> Option<u8> {
     KEYBOARD_BUFFER.lock().pop()
 }
@@ -22,6 +23,7 @@ pub struct KeyboardBuffer {
 }
 
 impl Default for KeyboardBuffer {
+    /// Create an empty ring buffer.
     fn default() -> Self {
         KeyboardBuffer {
             buf: [0; KB_BUF_SIZE],
@@ -32,6 +34,7 @@ impl Default for KeyboardBuffer {
 }
 
 impl KeyboardBuffer {
+    /// Construct a new empty ring buffer.
     pub const fn new() -> Self {
         Self {
             buf: [0; KB_BUF_SIZE],
@@ -40,15 +43,16 @@ impl KeyboardBuffer {
         }
     }
 
+    // Push a scancode if there is space; drop on overflow.
     fn push(&mut self, code: u8) {
         let next: usize = (self.head + 1) % KB_BUF_SIZE;
-        // 一杯のときは上書き or 無視、好きな方で
         if next != self.tail {
             self.buf[self.head] = code;
             self.head = next;
         }
     }
 
+    // Pop the oldest scancode if available.
     fn pop(&mut self) -> Option<u8> {
         if self.head == self.tail {
             None
@@ -60,9 +64,9 @@ impl KeyboardBuffer {
     }
 }
 
-// Shift状態を覚えて大文字や記号キーの入力も返す
 static SHIFT_PRESSED: AtomicBool = AtomicBool::new(false);
 
+/// Convert a set-1 scancode into an ASCII char, tracking shift state.
 pub fn scancode_to_char(sc: u8) -> Option<char> {
     const LEFT_SHIFT: u8 = 0x2A;
     const RIGHT_SHIFT: u8 = 0x36;
@@ -83,7 +87,6 @@ pub fn scancode_to_char(sc: u8) -> Option<char> {
     let shifted: bool = SHIFT_PRESSED.load(Ordering::Relaxed);
 
     match (shifted, sc) {
-        // 数字キー
         (false, 0x02) => Some('1'),
         (false, 0x03) => Some('2'),
         (false, 0x04) => Some('3'),
@@ -95,7 +98,6 @@ pub fn scancode_to_char(sc: u8) -> Option<char> {
         (false, 0x0A) => Some('9'),
         (false, 0x0B) => Some('0'),
 
-        // 数字キーのShift記号
         (true, 0x02) => Some('!'),
         (true, 0x03) => Some('@'),
         (true, 0x04) => Some('#'),
@@ -111,7 +113,6 @@ pub fn scancode_to_char(sc: u8) -> Option<char> {
         (false, 0x0D) => Some('='),
         (true, 0x0D) => Some('+'),
 
-        // アルファベット
         (false, 0x10) => Some('q'),
         (false, 0x11) => Some('w'),
         (false, 0x12) => Some('e'),
@@ -167,7 +168,6 @@ pub fn scancode_to_char(sc: u8) -> Option<char> {
         (true, 0x31) => Some('N'),
         (true, 0x32) => Some('M'),
 
-        // 記号キー
         (false, 0x1A) => Some('['),
         (true, 0x1A) => Some('{'),
         (false, 0x1B) => Some(']'),
@@ -187,7 +187,6 @@ pub fn scancode_to_char(sc: u8) -> Option<char> {
         (false, 0x35) => Some('/'),
         (true, 0x35) => Some('?'),
 
-        // 制御キー
         (_, 0x0E) => Some('\u{0008}'), // Backspace
         (_, 0x0F) => Some('\t'),       // Tab
         (_, 0x1C) => Some('\n'),       // Enter
