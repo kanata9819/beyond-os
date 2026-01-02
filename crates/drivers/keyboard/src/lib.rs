@@ -60,43 +60,6 @@ impl KeyboardBuffer {
     }
 }
 
-#[inline]
-unsafe fn inb(port: u16) -> u8 {
-    unsafe {
-        let value: u8;
-        core::arch::asm!(
-            "in al, dx",
-            in("dx") port,
-            out("al") value,
-            options(nomem, nostack, preserves_flags),
-        );
-
-        value
-    }
-}
-
-/// # Safety
-/// This reads from legacy PS/2 controller I/O ports using inline asm.
-/// Caller must ensure:
-/// - running with sufficient privilege (e.g., ring0) and port I/O is permitted
-/// - a PS/2-compatible controller exists at 0x60/0x64
-/// - no other code concurrently accesses these ports in a way that violates the
-///   controller protocol or races with this read
-pub unsafe fn read_scancode() -> Option<u8> {
-    const KBD_STATUS_PORT: u16 = 0x64;
-    const KBD_DATA_PORT: u16 = 0x60;
-
-    unsafe {
-        let status: u8 = inb(KBD_STATUS_PORT);
-
-        if status & 0x01 != 0 {
-            Some(inb(KBD_DATA_PORT))
-        } else {
-            None
-        }
-    }
-}
-
 // Shift状態を覚えて大文字や記号キーの入力も返す
 static SHIFT_PRESSED: AtomicBool = AtomicBool::new(false);
 
