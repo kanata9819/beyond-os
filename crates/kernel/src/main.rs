@@ -39,18 +39,22 @@ entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 /// recieve Memory Regions and FrameBuffer from bootloader_api.
 /// init idt(Interrupt Descriptor Table) and then interrupter of x86_64 crates enable.
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+    // Early serial init to diagnose boot hangs before framebuffer setup.
+    serial::init_serial();
+    serial_println!("kernel_main: start");
+
     let regions: &MemoryRegions = &boot_info.memory_regions;
     let frame_buffer: &mut FrameBuffer = boot_info.framebuffer.as_mut().expect("No FrameBudffer!!");
     let phys_offset = boot_info.physical_memory_offset.into_option();
-    let regions_for_allocator = convert_regions(regions);
 
     match BeyondFramebuffer::from_frame_buffer(frame_buffer) {
         Some(mut frame_buffer) => {
-            serial::init_serial();
+            serial_println!("kernel_main: framebuffer ok");
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
             init_heap(phys_offset, regions);
+            let regions_for_allocator = convert_regions(regions);
             memory::init_frame_allocator(regions_for_allocator.clone().leak());
 
             serial_println!("PCI scan:");

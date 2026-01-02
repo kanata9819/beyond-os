@@ -2,11 +2,13 @@ set shell := ["powershell", "-NoLogo", "-NoProfile", "-Command"]
 r:
     cargo build -p kernel --target x86_64-unknown-none
     cargo run -p os-runner
+    if (-not (Test-Path target/data.img)) { if (Get-Command qemu-img -ErrorAction SilentlyContinue) { qemu-img create -f raw target/data.img 64M } else { $fs = [IO.File]::Create("target/data.img"); $fs.SetLength(67108864); $fs.Close() } }
     qemu-system-x86_64 -drive file=target/bios.img,format=raw -drive file=target/data.img,format=raw,if=virtio -no-reboot -no-shutdown -serial stdio
 
 rd:
     cargo build -p kernel --target x86_64-unknown-none
     cargo run -p os-runner
+    if (-not (Test-Path target/data.img)) { if (Get-Command qemu-img -ErrorAction SilentlyContinue) { qemu-img create -f raw target/data.img 64M } else { $fs = [IO.File]::Create("target/data.img"); $fs.SetLength(67108864); $fs.Close() } }
     qemu-system-x86_64 -drive file=target/bios.img,format=raw -drive file=target/data.img,format=raw,if=virtio -no-reboot -no-shutdown -serial stdio -s -S
 
 lldb:
