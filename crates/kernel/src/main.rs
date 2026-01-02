@@ -41,6 +41,8 @@ entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let regions: &MemoryRegions = &boot_info.memory_regions;
     let frame_buffer: &mut FrameBuffer = boot_info.framebuffer.as_mut().expect("No FrameBudffer!!");
+    let phys_offset = boot_info.physical_memory_offset.into_option();
+    let regions_for_allocator = convert_regions(regions);
 
     match BeyondFramebuffer::from_frame_buffer(frame_buffer) {
         Some(mut frame_buffer) => {
@@ -48,13 +50,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             idt::init_idt();
             interrupts::init_interrupts();
             cpu_int::enable();
-            let phys_offset = boot_info.physical_memory_offset.into_option();
             init_heap(phys_offset, regions);
-
-            let regions_for_allocator = convert_regions(regions);
-            let regions_for_shell = regions_for_allocator.clone();
-            let regions_slice: &'static [MemRegion] = regions_for_allocator.leak();
-            memory::init_frame_allocator(regions_slice);
+            memory::init_frame_allocator(regions_for_allocator.clone().leak());
 
             serial_println!("PCI scan:");
             pci::scan(|dev| {
@@ -132,7 +129,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
             Shell::new(
                 TextConsole::new(&mut frame_buffer, Color::white(), Color::black()),
-                regions_for_shell,
+                regions_for_allocator,
                 phys_offset.expect("No physical memory offset"),
             )
             .run_shell();
