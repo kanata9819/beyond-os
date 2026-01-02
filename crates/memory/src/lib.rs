@@ -51,8 +51,7 @@ impl Iterator for MemRegionIter {
     }
 }
 
-static FRAME_ALLOCATOR: Mutex<Option<frame::BumpFrameAllocator<MemRegionIter>>> =
-    Mutex::new(None);
+static FRAME_ALLOCATOR: Mutex<Option<frame::BumpFrameAllocator<MemRegionIter>>> = Mutex::new(None);
 
 /// Generic address range [start, end) used for range checks.
 #[derive(Clone, Copy, Debug)]
